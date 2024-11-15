@@ -146,7 +146,7 @@ class Client {
       google::cloud::bigquery::v2::TableReference const& table_reference,
       Options opts = {});
   // This ReadArrow overload allows for full customization of the read session,
-  // except for AVRO format or AVRO serialization options.
+  // except for AVRO format or AVRO serialization options which are ignored.
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
