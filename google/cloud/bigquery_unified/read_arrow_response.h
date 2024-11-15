@@ -18,13 +18,21 @@
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/stream_range.h"
 #include <arrow/record_batch.h>
+#include <google/protobuf/timestamp.pb.h>
 #include <memory>
 #include <vector>
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
+// ReadRowsResponse.StreamStats, ReadRowsResponse.ThrottleState, and
+// ReadRowsResponse.uncompressed_byte_size are not made available. If there is
+// demand for these, we can look at adding mechanisms to retrieve those.
 struct ReadArrowResponse {
+  std::int64_t estimated_total_bytes;
+  std::int64_t estimated_total_physical_file_size;
+  std::int64_t estimated_row_count;
+  google::protobuf::Timestamp expire_time;
   std::shared_ptr<arrow::Schema> schema;
   std::vector<StreamRange<std::shared_ptr<arrow::RecordBatch>>> readers;
 };

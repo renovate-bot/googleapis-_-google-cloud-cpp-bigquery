@@ -125,14 +125,21 @@ class Client {
   //    std::shared_ptr<arrow::Schema> schema;
   //    std::vector<StreamRange<std::shared_ptr<arrow::RecordBatch>>> readers;
   //  };
+  //
+  // Setting CreateReadSessionRequest.ReadSession.data_format is ignored.
+  // Setting CreateReadSessionRequest.ReadSession.avro_serialization_options is ignored.
+  // CreateReadSessoinRequest.ReadSession.table is computed from the first parameter.
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::Job const& job,
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::JobReference const& job_reference,
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::TableReference const& table_reference,
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
 
  private:
