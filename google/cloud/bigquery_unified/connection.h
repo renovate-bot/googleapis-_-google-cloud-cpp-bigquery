@@ -16,6 +16,7 @@
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_CONNECTION_H
 
 #include "google/cloud/future.h"
+#include "google/cloud/no_await_tag.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status_or.h"
 #include "google/cloud/stream_range.h"
@@ -50,7 +51,7 @@ class Connection {
   // CancelJob
   virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
       google::cloud::bigquery::v2::CancelJobRequest const& request,
-      Options opts;
+      Options opts);
 
   virtual StatusOr<google::cloud::bigquery::v2::JobReference> CancelJob(
       google::cloud::NoAwaitTag,
@@ -59,7 +60,7 @@ class Connection {
 
   virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
       google::cloud::bigquery::v2::JobReference const& job_reference,
-      Options opts;
+      Options opts);
 
   // GetJob
   virtual StatusOr<google::cloud::bigquery::v2::Job> GetJob(
