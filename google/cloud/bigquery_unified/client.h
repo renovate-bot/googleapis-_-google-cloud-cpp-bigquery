@@ -130,19 +130,24 @@ class Client {
   //    std::vector<StreamRange<std::shared_ptr<arrow::RecordBatch>>> readers;
   //  };
   //
-  // Setting CreateReadSessionRequest.ReadSession.data_format is ignored.
-  // Setting CreateReadSessionRequest.ReadSession.avro_serialization_options is ignored.
-  // CreateReadSessoinRequest.ReadSession.table is computed from the first parameter.
+  // Unless `bigquery_unified::BillingProjectOption is set, the billing project
+  // is assumed to be the same as the project owning the table.
+  // Unless `bigquery_unified::SingleReaderOption` is set, the service
+  // suggested number of readers will be present in the response.
+  // Setting `bigquery_unified::SingleReaderOption` is required to guarantee
+  // ordering when reading results from ordered queries.
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::Job const& job,
-      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::JobReference const& job_reference,
-      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::TableReference const& table_reference,
+      Options opts = {});
+  // This ReadArrow overload allows for full customization of the read session,
+  // except for AVRO format or AVRO serialization options.
+  StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
       Options opts = {});
 

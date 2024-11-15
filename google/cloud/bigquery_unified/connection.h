@@ -47,24 +47,50 @@ class Connection {
 
   virtual Options options() { return Options{}; }
 
+  // CancelJob
   virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
+      google::cloud::bigquery::v2::CancelJobRequest const& request,
+      Options opts;
+
+  virtual StatusOr<google::cloud::bigquery::v2::JobReference> CancelJob(
+      google::cloud::NoAwaitTag,
       google::cloud::bigquery::v2::CancelJobRequest const& request,
       Options opts);
 
-  virtual StatusOr<google::cloud::bigquery::v2::Job> GetJob(
-    google::cloud::bigquery::v2::GetJobRequest const& request,
-    Options opts);
+  virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
+      google::cloud::bigquery::v2::JobReference const& job_reference,
+      Options opts;
 
-  virtual StatusOr<google::cloud::bigquery::v2::Job> InsertJob(
-      google::cloud::bigquery::v2::InsertJobRequest const& request,
+  // GetJob
+  virtual StatusOr<google::cloud::bigquery::v2::Job> GetJob(
+      google::cloud::bigquery::v2::GetJobRequest const& request,
       Options opts);
 
+  // DeleteJob
   virtual Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
                    Options opts);
 
+  // ListJobs
   virtual StreamRange<google::cloud::bigquery::v2::ListFormatJob> ListJobs(
-    google::cloud::bigquery::v2::ListJobsRequest request, Options opts);
+      google::cloud::bigquery::v2::ListJobsRequest request, Options opts);
 
+  // InsertJob
+  virtual future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
+      google::cloud::bigquery::v2::InsertJobRequest const& request,
+      Options opts);
+
+  virtual StatusOr<google::cloud::bigquery::v2::JobReference> InsertJob(
+      google::cloud::NoAwaitTag,
+      google::cloud::bigquery::v2::InsertJobRequest const& request,
+      Options opts);
+
+  virtual future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
+      google::cloud::bigquery::v2::JobReference const& job_reference,
+      Options opts);
+
+  virtual StatusOr<ReadArrowResponse> ReadArrow(
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
+      Options opts);
 };
 
 /**

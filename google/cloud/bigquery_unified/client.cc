@@ -78,18 +78,21 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::Job const& job,
-    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
     Options opts) {
   return {};
 }
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::JobReference const& job_reference,
-    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
     Options opts) {
   return {};
 }
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::TableReference const& table_reference,
+    Options opts) {
+  return {};
+}
+
+StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
     Options opts) {
   return {};
