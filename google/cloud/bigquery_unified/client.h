@@ -32,7 +32,7 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 ///
 /// BigQuery Unified API.
 ///
-/// description here
+/// TODO: description here
 ///
 /// @par Equality
 ///
@@ -122,6 +122,10 @@ class Client {
   // ReadArrow
   //  defined in read_arrow_response.h
   //  struct ReadArrowResponse {
+  //    std::int64_t estimated_total_bytes;
+  //    std::int64_t estimated_total_physical_file_size;
+  //    std::int64_t estimated_row_count;
+  //    google::protobuf::Timestamp expire_time;
   //    std::shared_ptr<arrow::Schema> schema;
   //    std::vector<StreamRange<std::shared_ptr<arrow::RecordBatch>>> readers;
   //  };
