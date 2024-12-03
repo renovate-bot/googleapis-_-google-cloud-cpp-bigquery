@@ -1,0 +1,39 @@
+# Common build output directory names
+.build/
+_build/
+build-output/
+build-out/
+cmake-out/
+
+# Common bazel output directories
+/bazel-*
+/google/cloud/*/quickstart/bazel-*
+!bazel-*.cfg
+
+# Used by some IDEs and LSP plugins
+compile_commands.json
+
+# clangd writes index files here
+.cache
+
+# Backup files for Emacs
+*~
+
+# Ignore IDEA / IntelliJ files
+.idea/
+cmake-build-*/
+.clwb/
+
+# Ignore Visual Studio Code files
+.vsbuild/
+.vscode/
+
+# `google-cloud-cpp` developers use this file to configure the development
+# workflow build.
+.cloudcxxrc
+
+# Ignore the file with user-defined CMake presets
+CMakeUserPresets.json
+
+# Lock files created by bzlmod. We do not want to accidentally commit these.
+MODULE.bazel.lock
