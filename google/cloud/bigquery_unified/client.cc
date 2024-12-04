@@ -22,9 +22,9 @@ Client::Client(std::shared_ptr<Connection> connection, Options opts)
       options_(google::cloud::internal::MergeOptions(std::move(opts),
                                                      connection_->options())) {}
 
-future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> Client::CancelJob(
-    google::cloud::bigquery::v2::CancelJobRequest const& request,
-    Options opts) {
+future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
+Client::CancelJob(google::cloud::bigquery::v2::CancelJobRequest const& request,
+                  Options opts) {
   return {};
 }
 
@@ -35,20 +35,21 @@ StatusOr<google::cloud::bigquery::v2::JobReference> Client::CancelJob(
   return {};
 }
 
-future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> Client::CancelJob(
+future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
+Client::CancelJob(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
   return {};
 }
 
 StatusOr<google::cloud::bigquery::v2::Job> Client::GetJob(
-    google::cloud::bigquery::v2::GetJobRequest const& request,
-    Options opts) {
+    google::cloud::bigquery::v2::GetJobRequest const& request, Options opts) {
   return {};
 }
 
-Status Client::DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
-                         Options opts) {
+Status Client::DeleteJob(
+    google::cloud::bigquery::v2::DeleteJobRequest const& request,
+    Options opts) {
   return {};
 }
 
@@ -77,8 +78,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
 }
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(
-    google::cloud::bigquery::v2::Job const& job,
-    Options opts) {
+    google::cloud::bigquery::v2::Job const& job, Options opts) {
   return {};
 }
 StatusOr<ReadArrowResponse> Client::ReadArrow(
@@ -93,7 +93,8 @@ StatusOr<ReadArrowResponse> Client::ReadArrow(
 }
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(
-    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
+    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+        read_session,
     Options opts) {
   return {};
 }

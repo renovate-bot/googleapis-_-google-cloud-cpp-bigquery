@@ -15,13 +15,13 @@
 #ifndef GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_CONNECTION_H
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_CONNECTION_H
 
+#include "google/cloud/bigquery_unified/read_arrow_response.h"
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/future.h"
 #include "google/cloud/no_await_tag.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status_or.h"
 #include "google/cloud/stream_range.h"
-#include "google/cloud/bigquery_unified/read_arrow_response.h"
-#include "google/cloud/bigquery_unified/version.h"
 #include <google/cloud/bigquery/storage/v1/storage.pb.h>
 #include <google/cloud/bigquery/v2/job.pb.h>
 #include <arrow/record_batch.h>
@@ -49,27 +49,27 @@ class Connection {
   virtual Options options() { return Options{}; }
 
   // CancelJob
-  virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
-      google::cloud::bigquery::v2::CancelJobRequest const& request,
-      Options opts);
+  virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
+  CancelJob(google::cloud::bigquery::v2::CancelJobRequest const& request,
+            Options opts);
 
   virtual StatusOr<google::cloud::bigquery::v2::JobReference> CancelJob(
       google::cloud::NoAwaitTag,
       google::cloud::bigquery::v2::CancelJobRequest const& request,
       Options opts);
 
-  virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
-      google::cloud::bigquery::v2::JobReference const& job_reference,
-      Options opts);
+  virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
+  CancelJob(google::cloud::bigquery::v2::JobReference const& job_reference,
+            Options opts);
 
   // GetJob
   virtual StatusOr<google::cloud::bigquery::v2::Job> GetJob(
-      google::cloud::bigquery::v2::GetJobRequest const& request,
-      Options opts);
+      google::cloud::bigquery::v2::GetJobRequest const& request, Options opts);
 
   // DeleteJob
-  virtual Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
-                   Options opts);
+  virtual Status DeleteJob(
+      google::cloud::bigquery::v2::DeleteJobRequest const& request,
+      Options opts);
 
   // ListJobs
   virtual StreamRange<google::cloud::bigquery::v2::ListFormatJob> ListJobs(
@@ -90,7 +90,8 @@ class Connection {
       Options opts);
 
   virtual StatusOr<ReadArrowResponse> ReadArrow(
-      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+          read_session,
       Options opts);
 };
 

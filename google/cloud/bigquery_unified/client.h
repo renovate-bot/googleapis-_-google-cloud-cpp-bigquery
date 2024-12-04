@@ -16,11 +16,11 @@
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_CLIENT_H
 
 #include "google/cloud/bigquery_unified/connection.h"
+#include "google/cloud/bigquery_unified/read_arrow_response.h"
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/future.h"
 #include "google/cloud/no_await_tag.h"
 #include "google/cloud/options.h"
-#include "google/cloud/bigquery_unified/read_arrow_response.h"
-#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/status_or.h"
 #include <google/cloud/bigquery/storage/v1/storage.pb.h>
 #include <google/cloud/bigquery/v2/job.pb.h>
@@ -137,8 +137,7 @@ class Client {
   // Setting `bigquery_unified::SingleReaderOption` is required to guarantee
   // ordering when reading results from ordered queries.
   StatusOr<ReadArrowResponse> ReadArrow(
-      google::cloud::bigquery::v2::Job const& job,
-      Options opts = {});
+      google::cloud::bigquery::v2::Job const& job, Options opts = {});
   StatusOr<ReadArrowResponse> ReadArrow(
       google::cloud::bigquery::v2::JobReference const& job_reference,
       Options opts = {});
@@ -148,7 +147,8 @@ class Client {
   // This ReadArrow overload allows for full customization of the read session,
   // except for AVRO format or AVRO serialization options which are ignored.
   StatusOr<ReadArrowResponse> ReadArrow(
-      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const& read_session,
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+          read_session,
       Options opts = {});
 
  private:
