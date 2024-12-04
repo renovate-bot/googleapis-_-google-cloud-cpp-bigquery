@@ -43,14 +43,6 @@ function features::libraries() {
 	printf "%s\n" "${feature_list[@]}" | sort -u
 }
 
-#function features::_internal_extra() {
-#  local list=(
-#    experimental-bigquery_rest
-#    opentelemetry
-#  )
-#  printf "%s\n" "${list[@]}"
-#}
-
 function features::list_full() {
 	local feature_list
 	mapfile -t feature_list < <(features::libraries)

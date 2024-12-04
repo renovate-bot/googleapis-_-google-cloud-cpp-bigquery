@@ -15,7 +15,7 @@
 createTime: '2021-04-09T18:15:32.194276806Z'
 filename: ci/cloudbuild/cloudbuild.yaml
 github:
-  name: google-cloud-cpp
+  name: google-cloud-cpp-bigquery
   owner: googleapis
   pullRequest:
     branch: ^main$
