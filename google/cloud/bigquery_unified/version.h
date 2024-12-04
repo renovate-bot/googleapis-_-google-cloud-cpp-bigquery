@@ -15,17 +15,18 @@
 #ifndef GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_VERSION_H
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_VERSION_H
 
+#include "google/cloud/bigquery_unified/internal/version_info.h"
 #include "google/cloud/internal/attributes.h"
 #include "google/cloud/internal/port_platform.h"
-#include "google/cloud/bigquery_unified/internal/version_info.h"
 #include <string>
 
 #define GOOGLE_CLOUD_CPP_BIGQUERY_VCONCAT(Ma, Mi, Pa) v##Ma##_##Mi
-#define GOOGLE_CLOUD_CPP_BIGQUERY_VEVAL(Ma, Mi, Pa) GOOGLE_CLOUD_CPP_BIGQUERY_VCONCAT(Ma, Mi, Pa)
-#define GOOGLE_CLOUD_CPP_BIGQUERY_NS                              \
+#define GOOGLE_CLOUD_CPP_BIGQUERY_VEVAL(Ma, Mi, Pa) \
+  GOOGLE_CLOUD_CPP_BIGQUERY_VCONCAT(Ma, Mi, Pa)
+#define GOOGLE_CLOUD_CPP_BIGQUERY_NS                                       \
   GOOGLE_CLOUD_CPP_BIGQUERY_VEVAL(GOOGLE_CLOUD_CPP_BIGQUERY_VERSION_MAJOR, \
-                         GOOGLE_CLOUD_CPP_BIGQUERY_VERSION_MINOR, \
-                         GOOGLE_CLOUD_CPP_BIGQUERY_VERSION_PATCH)
+                                  GOOGLE_CLOUD_CPP_BIGQUERY_VERSION_MINOR, \
+                                  GOOGLE_CLOUD_CPP_BIGQUERY_VERSION_PATCH)
 
 /**
  * Versioned inline namespace that users should generally avoid spelling.

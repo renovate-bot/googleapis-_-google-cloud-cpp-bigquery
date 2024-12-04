@@ -1,0 +1,158 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+options:
+  workerPool: 'projects/${PROJECT_ID}/locations/${_POOL_REGION}/workerPools/${_POOL_ID}'
+  dynamic_substitutions: true
+  env: [
+    'HOME=/h',
+    'TZ=UTC0',
+    'GOOGLE_CLOUD_BUILD=yes',
+    'PROJECT_ID=${PROJECT_ID}',
+    'BUILD_ID=${BUILD_ID}',
+    'BRANCH_NAME=${BRANCH_NAME}',
+    'COMMIT_SHA=${COMMIT_SHA}',
+    'PR_NUMBER=${_PR_NUMBER}',
+    'TRIGGER_TYPE=${_TRIGGER_TYPE}',
+    'GENERATE_GOLDEN_ONLY=',
+    'UPDATED_DISCOVERY_DOCUMENT=',
+    'CONSOLE_LOG_URL=https://console.cloud.google.com/cloud-build/builds;region=${_POOL_REGION}/${BUILD_ID};tab=detail?project=${PROJECT_ID}',
+    'RAW_LOG_URL=https://storage.googleapis.com/${_LOGS_BUCKET}/logs/google-cloud-cpp-bigquery/${_TRIGGER_SOURCE}/${COMMIT_SHA}/${_DISTRO}-${_BUILD_NAME}-${_SHARD}/log-${BUILD_ID}.txt'
+  ]
+  substitutionOption: 'ALLOW_LOOSE'
+  volumes:
+    - name: 'home'
+      path: '/h'
+
+# Variables that can be overridden from the `gcloud builds ...` command using
+# the `--substitutions=_FOO=bar` flag.
+substitutions:
+  _POOL_REGION: 'us-east4'                         # Adjust by project
+  _POOL_ID: 'google-cloud-cpp-bigquery-pool'       # Adjust by project
+  _CACHE_BUCKET: '${PROJECT_ID}_cloudbuild'        # Adjust by project
+  _LOGS_BUCKET: 'cloud-cpp-community-publiclogs'   # Adjust by project
+  _IMAGE: 'cloudbuild/${_DISTRO}'
+  _DISTRO: 'unknown'
+  _BUILD_NAME: 'unknown'
+  _TRIGGER_SOURCE: '${_PR_NUMBER:-main}'
+  _TRIGGER_TYPE: 'manual'
+  _TAG1: 'team-only'
+  _LIBRARIES: 'all_bar_compute'
+  _SHARD: '__default__'
+
+timeout: 36000s
+tags: [
+  '${_TRIGGER_TYPE}',
+  '${_BUILD_NAME}',
+  '${_DISTRO}',
+  '${_PR_NUMBER}',
+  '${_TAG1}'
+]
+
+availableSecrets:
+  secretManager:
+  - versionName: 'projects/${PROJECT_ID}/secrets/CODECOV_TOKEN/versions/latest'
+    env: 'CODECOV_TOKEN'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD/versions/latest'
+    env: 'UD'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD_PROJECT/versions/latest'
+    env: 'UD_PROJECT'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD_REGION/versions/latest'
+    env: 'UD_REGION'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD_ZONE/versions/latest'
+    env: 'UD_ZONE'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD_SERVICE_ACCOUNT/versions/latest'
+    env: 'UD_SERVICE_ACCOUNT'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD_SERVICE_ACCOUNT_NAME/versions/latest'
+    env: 'UD_SERVICE_ACCOUNT_NAME'
+  - versionName: 'projects/${PROJECT_ID}/secrets/UD_IMPERSONATED_SERVICE_ACCOUNT_NAME/versions/latest'
+    env: 'UD_IMPERSONATED_SERVICE_ACCOUNT_NAME'
+
+logsBucket: 'gs://${_LOGS_BUCKET}/logs/google-cloud-cpp-bigquery/${_TRIGGER_SOURCE}/${COMMIT_SHA}/${_DISTRO}-${_BUILD_NAME}-${_SHARD}'
+
+steps:
+  # Builds the docker image that will be used by the main build step. Makes 3
+  # attempts to workaround #6438.
+- name: 'gcr.io/kaniko-project/executor:v1.23.2-debug'
+  id: 'kaniko-build'
+  entrypoint: '/busybox/sh'
+  args:
+    - -c
+    - |
+      status=1
+      for delay in 0 30 30 30 30; do
+        sleep $$delay
+        /kaniko/executor --log-format=text \
+          --context=dir:///workspace/ci \
+          --dockerfile=ci/cloudbuild/dockerfiles/${_DISTRO}.Dockerfile \
+          --cache=true \
+          --destination=${_POOL_REGION}-docker.pkg.dev/${PROJECT_ID}/gcb/${_IMAGE}:${BUILD_ID}
+        if [[ $? -eq 0 ]]; then
+          status=0
+          break
+        fi
+      done
+      exit $$status
+
+  # Pull the docker image. The step running 'ci/cloud/build.sh' would do this
+  # automatically, and also fill the log with about 2-3 pages of noise.
+- name: '${_POOL_REGION}-docker.pkg.dev/${PROJECT_ID}/gcb/${_IMAGE}:${BUILD_ID}'
+  id: 'download-runner-image'
+  entrypoint: '/bin/true'
+
+  # Runs the specified build in the image that was created in the first step.
+- name: '${_POOL_REGION}-docker.pkg.dev/${PROJECT_ID}/gcb/${_IMAGE}:${BUILD_ID}'
+  entrypoint: 'ci/cloudbuild/build.sh'
+  args: [ '--local', '--build', '${_BUILD_NAME}' ]
+  secretEnv: ['CODECOV_TOKEN', 'UD', 'UD_PROJECT', 'UD_REGION', 'UD_ZONE', 'UD_SERVICE_ACCOUNT', 'UD_SERVICE_ACCOUNT_NAME', 'UD_IMPERSONATED_SERVICE_ACCOUNT_NAME']
+  env: [
+    'BAZEL_REMOTE_CACHE=https://storage.googleapis.com/${_CACHE_BUCKET}/bazel-cache/${_DISTRO}-${_BUILD_NAME}',
+    'LIBRARIES=${_LIBRARIES}',
+    'SHARD=${_SHARD}',
+    'SCCACHE_GCS_BUCKET=${_CACHE_BUCKET}',
+    'SCCACHE_GCS_KEY_PREFIX=sccache/${_DISTRO}-${_BUILD_NAME}',
+    'SCCACHE_GCS_RW_MODE=READ_WRITE',
+    'CTCACHE_GCS_BUCKET=${_CACHE_BUCKET}',
+    'CTCACHE_GCS_FOLDER=ctcache/${_DISTRO}/${_BUILD_NAME}',
+    'VCPKG_BINARY_SOURCES=x-gcs,gs://${_CACHE_BUCKET}/vcpkg-cache/${_DISTRO}-${_BUILD_NAME},readwrite'
+  ]
+
+  # Remove the image created by this build.
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  allowFailure: true
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      set +e
+      gcloud artifacts docker images delete -q ${_POOL_REGION}-docker.pkg.dev/${PROJECT_ID}/gcb/${_IMAGE}:${BUILD_ID}
+
+  # Cancels in-progress builds for previous commits in the current PR so we can
+  # free up resources to start running the builds for the new commit.
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  allowFailure: true
+  waitFor: [ '-' ]
+  entrypoint: 'bash'
+  args:
+    - '-c'
+    - |
+      set -xe
+      test -z "${_PR_NUMBER}" && exit 0
+      ctime="$(gcloud builds describe --region '${_POOL_REGION}' --format 'value(create_time)' '${BUILD_ID}')"
+      query="tags=pr"
+      query+=" AND tags=${_PR_NUMBER}"
+      query+=" AND substitutions.COMMIT_SHA != ${COMMIT_SHA}"
+      query+=" AND create_time < ${ctime}"
+      gcloud builds list --region '${_POOL_REGION}' --ongoing --format='value(id)' --filter "${query}" | \
+        xargs -r -t gcloud builds cancel --region '${_POOL_REGION}'

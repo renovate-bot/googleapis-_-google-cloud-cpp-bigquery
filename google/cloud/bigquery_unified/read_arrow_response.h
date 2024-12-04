@@ -17,8 +17,8 @@
 
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/stream_range.h"
-#include <arrow/record_batch.h>
 #include <google/protobuf/timestamp.pb.h>
+#include <arrow/record_batch.h>
 #include <memory>
 #include <vector>
 

@@ -20,11 +20,13 @@ set(CMAKE_CXX_STANDARD 17)
 # Define the project name and where to report bugs.
 set(PACKAGE_BUGREPORT
     "https://github.com/googleapis/google-cloud-cpp-bigquery/issues")
-project(google-cloud-cpp-bigquery
-	VERSION 2.0.0
-	LANGUAGES CXX)
+project(
+  google-cloud-cpp-bigquery
+  VERSION 0.0.1
+  LANGUAGES CXX)
 set(PROJECT_VERSION_PRE_RELEASE "rc")
 
+# TODO: remove always-on sanitizer before release
 add_compile_options(-fsanitize=address)
 add_link_options(-fsanitize=address)
 
