@@ -38,8 +38,8 @@ options:
 # Variables that can be overridden from the `gcloud builds ...` command using
 # the `--substitutions=_FOO=bar` flag.
 substitutions:
-  _POOL_REGION: 'us-east2'                         # Adjust by project
-  _POOL_ID: 'google-cloud-cpp-pool'                # Adjust by project
+  _POOL_REGION: 'us-east4'                         # Adjust by project
+  _POOL_ID: 'google-cloud-cpp-bigquery-pool'       # Adjust by project
   _CACHE_BUCKET: '${PROJECT_ID}_cloudbuild'        # Adjust by project
   _LOGS_BUCKET: 'cloud-cpp-community-publiclogs'   # Adjust by project
   _IMAGE: 'cloudbuild/${_DISTRO}'
