@@ -22,45 +22,45 @@ readonly BINDIR
 file="doc/packaging.md"
 
 (
-	sed '/<!-- inject-distro-instructions-start -->/q' "${file}"
+  sed '/<!-- inject-distro-instructions-start -->/q' "${file}"
 
-	# Extracts the part of a file between the BEGIN/DONE tags.
-	function extract() {
-		sed -e '0,/^.*\[BEGIN packaging.md\].*$/d' \
-			-e '/^.*\[DONE packaging.md\].*$/,$d' "$1" | sed -e '/testing_details/d'
-	}
+  # Extracts the part of a file between the BEGIN/DONE tags.
+  function extract() {
+    sed -e '0,/^.*\[BEGIN packaging.md\].*$/d' \
+      -e '/^.*\[DONE packaging.md\].*$/,$d' "$1" | sed -e '/testing_details/d'
+  }
 
-	# A "map" (comma separated) of dockerfile -> summary.
-	DOCKER_DISTROS=(
-		"demo-alpine-stable.Dockerfile,Alpine (Stable)"
-		"demo-fedora.Dockerfile,Fedora (40)"
-		"demo-opensuse-leap.Dockerfile,openSUSE (Leap)"
-		"demo-ubuntu-24.04.Dockerfile,Ubuntu (24.04 LTS - Noble Numbat)"
-		"demo-ubuntu-jammy.Dockerfile,Ubuntu (22.04 LTS - Jammy Jellyfish)"
-		"demo-ubuntu-focal.Dockerfile,Ubuntu (20.04 LTS - Focal Fossa)"
-		"demo-debian-bookworm.Dockerfile,Debian (12 - Bookworm)"
-		"demo-debian-bullseye.Dockerfile,Debian (11 - Bullseye)"
-		"demo-rockylinux-9.Dockerfile,Rocky Linux (9)"
-	)
-	for distro in "${DOCKER_DISTROS[@]}"; do
-		dockerfile="$(cut -f1 -d, <<<"${distro}")"
-		summary="$(cut -f2- -d, <<<"${distro}")"
-		echo
-		echo "<details>"
-		echo "<summary>${summary}</summary>"
-		echo "<br>"
-		extract "${BINDIR}/../cloudbuild/dockerfiles/${dockerfile}" |
-			"${BINDIR}/dockerfile2markdown.sh"
-		echo "#### Compile and install the main project"
-		echo
-		echo "We can now compile and install \`google-cloud-cpp-bigquery\`:"
-		echo
-		echo '```bash'
-		extract "${BINDIR}/../cloudbuild/builds/demo-install.sh"
-		echo '```'
-		echo
-		echo "</details>"
-	done
-	echo
-	sed -n '/<!-- inject-distro-instructions-end -->/,$p' "${file}"
+  # A "map" (comma separated) of dockerfile -> summary.
+  DOCKER_DISTROS=(
+    "demo-alpine-stable.Dockerfile,Alpine (Stable)"
+    "demo-fedora.Dockerfile,Fedora (40)"
+    "demo-opensuse-leap.Dockerfile,openSUSE (Leap)"
+    "demo-ubuntu-24.04.Dockerfile,Ubuntu (24.04 LTS - Noble Numbat)"
+    "demo-ubuntu-jammy.Dockerfile,Ubuntu (22.04 LTS - Jammy Jellyfish)"
+    "demo-ubuntu-focal.Dockerfile,Ubuntu (20.04 LTS - Focal Fossa)"
+    "demo-debian-bookworm.Dockerfile,Debian (12 - Bookworm)"
+    "demo-debian-bullseye.Dockerfile,Debian (11 - Bullseye)"
+    "demo-rockylinux-9.Dockerfile,Rocky Linux (9)"
+  )
+  for distro in "${DOCKER_DISTROS[@]}"; do
+    dockerfile="$(cut -f1 -d, <<<"${distro}")"
+    summary="$(cut -f2- -d, <<<"${distro}")"
+    echo
+    echo "<details>"
+    echo "<summary>${summary}</summary>"
+    echo "<br>"
+    extract "${BINDIR}/../cloudbuild/dockerfiles/${dockerfile}" |
+      "${BINDIR}/dockerfile2markdown.sh"
+    echo "#### Compile and install the main project"
+    echo
+    echo "We can now compile and install \`google-cloud-cpp-bigquery\`:"
+    echo
+    echo '```bash'
+    extract "${BINDIR}/../cloudbuild/builds/demo-install.sh"
+    echo '```'
+    echo
+    echo "</details>"
+  done
+  echo
+  sed -n '/<!-- inject-distro-instructions-end -->/,$p' "${file}"
 ) | sponge "${file}"

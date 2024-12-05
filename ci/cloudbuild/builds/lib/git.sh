@@ -21,20 +21,20 @@
 # Make our include guard clean against set -o nounset.
 test -n "${CI_CLOUDBUILD_BUILDS_LIB_GIT_SH__:-}" || declare -i CI_CLOUDBUILD_BUILDS_LIB_GIT_SH__=0
 if ((CI_CLOUDBUILD_BUILDS_LIB_GIT_SH__++ != 0)); then
-	return 0
+  return 0
 fi # include guard
 
 source module ci/lib/io.sh
 
 io::log "Checking for a valid git environment..."
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-	io::log_green "Inside a git repository"
+  io::log_green "Inside a git repository"
 else
-	# This repository is thrown away at the end of the build.
-	io::log "Creating a git repository"
-	git init --initial-branch=ephemeral-branch
-	git config --local user.email "ephemeral@fake"
-	git config --local user.name "ephemeral"
-	git add .
-	git commit --quiet -m "ephemeral: added all files"
+  # This repository is thrown away at the end of the build.
+  io::log "Creating a git repository"
+  git init --initial-branch=ephemeral-branch
+  git config --local user.email "ephemeral@fake"
+  git config --local user.name "ephemeral"
+  git add .
+  git commit --quiet -m "ephemeral: added all files"
 fi

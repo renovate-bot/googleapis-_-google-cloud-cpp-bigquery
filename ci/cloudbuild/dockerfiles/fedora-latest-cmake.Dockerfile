@@ -175,9 +175,27 @@ RUN curl -fsSL https://github.com/grpc/grpc/archive/v1.67.0.tar.gz | \
       -DgRPC_ZLIB_PROVIDER=package \
       -DgRPC_OPENTELEMETRY_PROVIDER=package \
       -DgRPC_BUILD_GRPCPP_OTEL_PLUGIN=ON \
+      -DgRPC_BUILD_GRPC_CPP_PLUGIN=ON \
       -GNinja -S . -B cmake-out && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build
+
+# LD_LIBRARY_PATH needs to be set so that protoc plugins can find their .so \
+# files.
+ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:${LD_LIBRARY_PATH}
+WORKDIR /var/tmp/build/google-cloud-cpp
+RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.31.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_SHARED_LIBS=yes \
+        -DGOOGLE_CLOUD_CPP_ENABLE="bigquerycontrol,bigquery" \
+      -GNinja -S . -B cmake-out && \
+    cmake --build cmake-out --target install && \
+    ldconfig && cd /var/tmp && rm -fr build
+
+RUN dnf makecache && dnf install -y libarrow-devel
+
 
 # Installs Universal Ctags (which is different than the default "Exuberant
 # Ctags"), which is needed by the ABI checker. See https://ctags.io/

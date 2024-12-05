@@ -20,21 +20,21 @@ source "$(dirname "$0")/../lib/init.sh"
 source module ci/lib/io.sh
 
 if [[ $# -ne 1 ]]; then
-	echo 2>"Usage: $(basename "$0") <library>"
-	exit 1
+  echo 2>"Usage: $(basename "$0") <library>"
+  exit 1
 fi
 
 cd "${PROJECT_ROOT}"
 readonly LIBRARY=$1
 
 (
-	sed '/<!-- inject-quickstart-start -->/q' "google/cloud/${LIBRARY}/README.md"
-	echo ''
-	echo '```cc'
-	# Dumps the contents of quickstart.cc starting at the first #include, so we
-	# skip the license header comment.
-	sed -n -e '/END .*quickstart/,$d' -e '\:^//!:d' -e '/^#/,$p' "google/cloud/${LIBRARY}/quickstart/quickstart.cc"
-	echo '```'
-	echo ''
-	sed -n '/<!-- inject-quickstart-end -->/,$p' "google/cloud/${LIBRARY}/README.md"
+  sed '/<!-- inject-quickstart-start -->/q' "google/cloud/${LIBRARY}/README.md"
+  echo ''
+  echo '```cc'
+  # Dumps the contents of quickstart.cc starting at the first #include, so we
+  # skip the license header comment.
+  sed -n -e '/END .*quickstart/,$d' -e '\:^//!:d' -e '/^#/,$p' "google/cloud/${LIBRARY}/quickstart/quickstart.cc"
+  echo '```'
+  echo ''
+  sed -n '/<!-- inject-quickstart-end -->/,$p' "google/cloud/${LIBRARY}/README.md"
 ) | sponge "google/cloud/${LIBRARY}/README.md"
