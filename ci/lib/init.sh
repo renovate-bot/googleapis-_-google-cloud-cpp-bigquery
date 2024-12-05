@@ -32,19 +32,19 @@
 # Make our include guard clean against set -o nounset.
 test -n "${CI_LIB_INIT_SH__:-}" || declare -i CI_LIB_INIT_SH__=0
 if ((CI_LIB_INIT_SH__++ != 0)); then
-	return 0
+  return 0
 fi # include guard
 
 function init::repo_root() {
-	local dir="$1"
-	while [[ ! -f "${dir}/WORKSPACE.bazel" ]]; do
-		dir="$(dirname "$dir")"
-		if [[ "${dir}" == "/" ]]; then
-			echo >&2 "FATAL: Unable to find repo root."
-			exit 1
-		fi
-	done
-	echo "${dir}"
+  local dir="$1"
+  while [[ ! -f "${dir}/WORKSPACE.bazel" ]]; do
+    dir="$(dirname "$dir")"
+    if [[ "${dir}" == "/" ]]; then
+      echo >&2 "FATAL: Unable to find repo root."
+      exit 1
+    fi
+  done
+  echo "${dir}"
 }
 
 # Gets the absolute path to $0, which is the currently executing script that
@@ -58,10 +58,10 @@ PROJECT_ROOT="$(init::repo_root "${PROGRAM_DIR}")"
 # Sets the path to the `module` library in PATH so that it can be found when
 # callers use `source module <args>`
 if [[ ! "$PATH" =~ ${PROJECT_ROOT}/ci/lib ]]; then
-	# Changing PATH invalidates the Bazel cache, while this script runs at most
-	# once when called by a single script, it might be loaded again by a child
-	# script.
-	PATH="${PROJECT_ROOT}/ci/lib:${PATH}"
+  # Changing PATH invalidates the Bazel cache, while this script runs at most
+  # once when called by a single script, it might be loaded again by a child
+  # script.
+  PATH="${PROJECT_ROOT}/ci/lib:${PATH}"
 fi
 
 # Sets the module search path to only the PROJECT_ROOT to force sourced module
@@ -69,7 +69,7 @@ fi
 # actual file being sourced. This is similar to how C++ includes are all
 # relative to the project root.
 MODULE_SEARCH_PATH=(
-	"${PROJECT_ROOT}"
+  "${PROJECT_ROOT}"
 )
 
 # Run tests in a random order to help expose undesirable interdependencies.

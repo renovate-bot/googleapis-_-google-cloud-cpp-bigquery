@@ -21,9 +21,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(PACKAGE_BUGREPORT
     "https://github.com/googleapis/google-cloud-cpp-bigquery/issues")
 project(
-  google-cloud-cpp-bigquery
-  VERSION 0.0.1
-  LANGUAGES CXX)
+    google-cloud-cpp-bigquery
+    VERSION 0.0.1
+    LANGUAGES CXX)
 set(PROJECT_VERSION_PRE_RELEASE "rc")
 
 # TODO: remove always-on sanitizer before release

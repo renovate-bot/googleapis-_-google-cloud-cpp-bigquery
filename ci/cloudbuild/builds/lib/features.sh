@@ -19,42 +19,42 @@
 # Make our include guard clean against set -o nounset.
 test -n "${CI_CLOUDBUILD_BUILDS_LIB_FEATURES_SH__:-}" || declare -i CI_CLOUDBUILD_BUILDS_LIB_FEATURES_SH__=0
 if ((CI_CLOUDBUILD_BUILDS_LIB_FEATURES_SH__++ != 0)); then
-	return 0
+  return 0
 fi # include guard
 
 function features::always_build() {
-	local list
-	list=(
-		bigquery_unified
-	)
-	printf "%s\n" "${list[@]}" | sort -u
+  local list
+  list=(
+    bigquery_unified
+  )
+  printf "%s\n" "${list[@]}" | sort -u
 }
 
 function features::always_build_cmake() {
-	local features
-	mapfile -t feature_list < <(features::always_build)
-	features="$(printf ",%s" "${feature_list[@]}")"
-	echo "${features:1}"
+  local features
+  mapfile -t feature_list < <(features::always_build)
+  features="$(printf ",%s" "${feature_list[@]}")"
+  echo "${features:1}"
 }
 
 function features::libraries() {
-	local feature_list
-	mapfile -t feature_list < <(features::always_build)
-	printf "%s\n" "${feature_list[@]}" | sort -u
+  local feature_list
+  mapfile -t feature_list < <(features::always_build)
+  printf "%s\n" "${feature_list[@]}" | sort -u
 }
 
 function features::list_full() {
-	local feature_list
-	mapfile -t feature_list < <(features::libraries)
-	local extra_list
-	#  mapfile -t extra_list < <(features::_internal_extra)
-	printf "%s\n" "${feature_list[@]}" "${extra_list[@]}" | sort -u
+  local feature_list
+  mapfile -t feature_list < <(features::libraries)
+  local extra_list
+  #  mapfile -t extra_list < <(features::_internal_extra)
+  printf "%s\n" "${feature_list[@]}" "${extra_list[@]}" | sort -u
 }
 
 function features::list_full_cmake() {
-	local feature_list
-	mapfile -t feature_list < <(features::list_full)
-	local concat
-	concat="$(printf ",%s" "${feature_list[@]}" "${extra_list[@]}")"
-	echo "${concat:1}"
+  local feature_list
+  mapfile -t feature_list < <(features::list_full)
+  local concat
+  concat="$(printf ",%s" "${feature_list[@]}" "${extra_list[@]}")"
+  echo "${concat:1}"
 }
