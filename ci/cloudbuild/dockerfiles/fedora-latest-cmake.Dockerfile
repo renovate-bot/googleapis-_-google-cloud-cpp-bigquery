@@ -194,8 +194,15 @@ RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.31.0.ta
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build
 
-RUN dnf makecache && dnf install -y libarrow-devel
-
+WORKDIR /var/tmp/build/arrow
+RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S cpp -B cmake-out \
+      --preset ninja-release-minimal \
+      -DARROW_BUILD_STATIC=ON  && \
+    cmake --build cmake-out --target install && \
+    ldconfig && cd /var/tmp && rm -fr build
 
 # Installs Universal Ctags (which is different than the default "Exuberant
 # Ctags"), which is needed by the ABI checker. See https://ctags.io/
