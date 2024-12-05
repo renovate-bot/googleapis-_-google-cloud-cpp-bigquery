@@ -12,13 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "google/cloud/version.h"
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/internal/build_info.h"
 #include <sstream>
 
 namespace google::cloud::bigquery_unified {
-GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
-
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 std::string version_string() {
   static auto const* const kVersion = new auto([] {
     std::ostringstream os;
@@ -37,5 +36,5 @@ std::string version_string() {
   return *kVersion;
 }
 
-GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
 }  // namespace google::cloud::bigquery_unified
