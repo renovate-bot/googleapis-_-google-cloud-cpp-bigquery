@@ -38,7 +38,7 @@ target_link_libraries(
          google-cloud-cpp::experimental-bigquerycontrol
          google-cloud-cpp::grpc_utils
          google-cloud-cpp::common
-         Arrow::arrow_static)
+         Arrow::arrow_shared)
 set_target_properties(
   google_cloud_cpp_bigquery_unified
   PROPERTIES EXPORT_NAME "google-cloud-cpp-bigquery::bigquery_unified"
