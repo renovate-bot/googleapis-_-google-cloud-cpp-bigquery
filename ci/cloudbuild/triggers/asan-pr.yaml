@@ -23,7 +23,7 @@ includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
 name: asan-pr
 substitutions:
   _BUILD_NAME: asan
-  _DISTRO: fedora-latest-bazel
+  _DISTRO: fedora-latest-bazel-asan
   _TRIGGER_TYPE: pr
 tags:
 - pr

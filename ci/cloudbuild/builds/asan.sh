@@ -23,7 +23,5 @@ source module ci/cloudbuild/builds/lib/integration.sh
 source module ci/lib/io.sh
 
 mapfile -t args < <(bazel::common_args)
-args+=(--config=asan
-  --noenable_bzlmod
-)
+args+=(--config=asan)
 io::run bazel test "${args[@]}" --test_tag_filters=-integration-test "${BAZEL_TARGETS[@]}"
