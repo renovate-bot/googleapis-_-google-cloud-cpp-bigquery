@@ -54,12 +54,21 @@ RUN curl -o /usr/bin/bazelisk -sSL "https://github.com/bazelbuild/bazelisk/relea
     chmod +x /usr/bin/bazelisk && \
     ln -s /usr/bin/bazelisk /usr/bin/bazel
 
+# Create a toolchain file to build Arrow with the address sanitizer.
+RUN echo -e '\
+set(CMAKE_C_COMPILER clang)\n\
+set(CMAKE_CXX_COMPILER clang++)\n\
+set(CMAKE_CXX_STANDARD 17)\n\
+set(CMAKE_CXX_FLAGS_INIT "-g -fsanitize=address -fno-omit-frame-pointer")\n'\
+>> /tmp/asan_toolchain.cmake
+
 WORKDIR /var/tmp/build/arrow
 RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
+      -DCMAKE_TOOLCHAIN_FILE=/tmp/asan_toolchain.cmake \
       -GNinja -S cpp -B cmake-out \
-      --preset ninja-release-minimal \
+      --preset ninja-debug-minimal \
       -DARROW_BUILD_STATIC=ON  && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build

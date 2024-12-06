@@ -1,0 +1,137 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# NOTE: This file is not loaded if google-cloud-cpp is built as part of a
+# larger project.
+
+# TODO: enable bzlmod once conflicting proto versions in pb.h files are fixed
+# and arrow has bzlmod support.
+build --enable_bzlmod=false
+
+# Use host-OS-specific config lines from bazelrc files.
+build --enable_platform_specific_config=true
+
+# The project requires C++ >= 17. By default Bazel adds `-std=c++0x` which
+# disables C++17 features, even if the compilers defaults to C++ >= 17
+build:linux --cxxopt=-std=c++17
+build:macos --cxxopt=-std=c++17
+# Protobuf and gRPC require (or soon will require) C++17 to compile the "host"
+# targets, such as protoc and the grpc plugin.
+build:linux --host_cxxopt=-std=c++17
+build:macos --host_cxxopt=-std=c++17
+
+# Do not create the convenience links. They are inconvenient when the build
+# runs inside a docker image or if one builds a quickstart and then builds
+# the project separately.
+build --experimental_convenience_symlinks=ignore
+
+# We mirror critical tarballs from several sources in case the canonical source
+# is temporarily unavailable, e.g., github.com being down. This option and flag
+# automatically rewrites the URLs.
+build --experimental_downloader_config=bazel/downloader.cfg
+
+# It is frustrating when long-running builds/tests fail, but it is even more
+# frustrating when they fail and don't give any output. So, remove the limit.
+build --experimental_ui_max_stdouterr_bytes=-1
+
+# TODO(#13311) - remove once gRPC works with Bazel v7 or when gRPC stops using
+#     `apple_rules`.
+common:macos --repo_env=BAZEL_NO_APPLE_CPP_TOOLCHAIN=1
+
+# Inject ${GTEST_SHUFFLE} and ${GTEST_RANDOM_SEED} into the test environment
+# if they are set in the enclosing environment. This allows for running tests
+# in a random order to help expose undesirable interdependencies.
+test --test_env=GTEST_SHUFFLE --test_env=GTEST_RANDOM_SEED
+
+# By default, build the library with OpenTelemetry
+#build --//:enable_opentelemetry
+
+# Don't show warnings when building external dependencies. This still shows
+# warnings when using these dependencies (say in headers).
+build --output_filter='^//((?!(external):).)*$'
+
+# --config libcxx: Compile and link using libc++.
+build:libcxx --cxxopt=-stdlib=libc++
+build:libcxx --linkopt=-stdlib=libc++
+build:libcxx --linkopt=-lc++
+build:libcxx --linkopt=-lc++abi
+
+# Clang Sanitizers, use with (for example):
+#
+# --client_env=CXX=clang++ --client_env=CC=clang --config asan
+#
+
+# --config sanitizer refactors comment settings for all sanitizers
+build:sanitizer --strip=never
+build:sanitizer --copt=-Og
+build:sanitizer --copt=-g
+build:sanitizer --copt=-fno-omit-frame-pointer
+
+# --config asan: Address Sanitizer
+build:asan --config=sanitizer
+build:asan --copt=-fsanitize=address
+# Protobuf enables -Werror by default. We are building with GCC 13. With
+# -Werror and Address Sanitizer the compiler emits warnings in some of the
+# Protobuf code, and that stops the build. It may be a compiler bug, or Protobuf
+# may be assuming that some compiler flags are set when compiling with Address
+# Sanitizier (-DADDRESS_SANITIZER=1 is one possibility).
+build:asan --per_file_copt=com_google_protobuf//@-Wno-error
+build:asan --per_file_copt=protobuf~//@-Wno-error
+build:asan --linkopt=-fsanitize=address
+build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always
+build:asan --action_env=LSAN_OPTIONS=report_objects=1
+
+# --config tsan: Thread Sanitizer
+build:tsan --config=sanitizer
+build:tsan --copt=-fsanitize=thread
+build:tsan --linkopt=-fsanitize=thread
+# report_atomic_races=0: https://github.com/google/sanitizers/issues/953
+build:tsan --action_env=TSAN_OPTIONS=halt_on_error=1:second_deadlock_stack=1:report_atomic_races=0
+
+# --config ubsan: Undefined Behavior Sanitizer
+build:ubsan --config=sanitizer
+build:ubsan --config=libcxx
+build:ubsan --copt=-fsanitize=undefined
+# By default libcurl calls functions through pointers not matching the original
+# type.
+build:ubsan --copt=-DCURL_STRICTER
+build:ubsan --linkopt=-fsanitize=undefined
+build:ubsan --linkopt=-fsanitize-link-c++-runtime
+build:ubsan --action_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+
+# --config xsan: Runs misc. sanitizers that aren't covered elsewhere.
+build:xsan --config=sanitizer
+build:xsan --config=libcxx
+build:xsan --copt=-fsanitize=float-divide-by-zero
+build:xsan --copt=-fsanitize=nullability
+build:xsan --linkopt=-fsanitize-link-c++-runtime
+build:xsan --linkopt=-fsanitize=float-divide-by-zero
+build:xsan --linkopt=-fsanitize=nullability
+build:xsan --action_env=UBSAN_OPTIONS=halt_on_error=1:print_stacktrace=1
+
+# --config msan: Memory Sanitizer
+# This requires a version of libc++ compiled with memory sanitizer too. Only
+build:msan --config=sanitizer
+build:msan --config=libcxx
+build:msan --copt=-fsanitize=memory
+build:msan --copt=-fsanitize-memory-track-origins
+build:msan --copt=-fsanitize-memory-use-after-dtor
+build:msan --cxxopt=-I/usr/include/x86_64-unknown-linux-gnu/c++/v1
+build:msan --linkopt=-fsanitize=memory
+build:msan --action_env=LD_LIBRARY_PATH=/usr/local/lib64:/usr/local/lib:/usr/lib64:/usr/lib:/lib64:/lib
+build:msan --action_env=MSAN_OPTIONS=poison_in_dtor=1
+build:msan --linkopt=-L/usr/lib/x86_64-unknown-linux-gnu
+
+# --config otel2: Open Telemetery ABI version 2
+#build:otel2 --cxxopt=-DOPENTELEMETRY_ABI_VERSION_NO=2

@@ -11,3 +11,41 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+workspace(name = "google_cloud_cpp_bigquery")
+
+load("//bazel:workspace0.bzl", "gl_cpp_workspace0")
+
+gl_cpp_workspace0()
+
+load("//bazel:workspace1.bzl", "gl_cpp_workspace1")
+
+gl_cpp_workspace1()
+
+load("//bazel:workspace2.bzl", "gl_cpp_workspace2")
+
+gl_cpp_workspace2()
+
+load("//bazel:workspace3.bzl", "gl_cpp_workspace3")
+
+gl_cpp_workspace3()
+
+load("//bazel:workspace4.bzl", "gl_cpp_workspace4")
+
+gl_cpp_workspace4()
+
+load("//bazel:workspace5.bzl", "gl_cpp_workspace5")
+
+gl_cpp_workspace5()
+
+load("//bazel:development0.bzl", "gl_cpp_development0")
+
+gl_cpp_development0()
+
+load("//bazel:development1.bzl", "gl_cpp_development1")
+
+gl_cpp_development1()
+
+load("//bazel:development2.bzl", "gl_cpp_development2")
+
+gl_cpp_development2()
