@@ -15,7 +15,8 @@
 # NOTE: This file is not loaded if google-cloud-cpp is built as part of a
 # larger project.
 
-# TODO: enable bzlmod once conflicting proto versions in pb.h files are fixed.
+# TODO: enable bzlmod once conflicting proto versions in pb.h files are fixed
+# and arrow has bzlmod support.
 build --enable_bzlmod=false
 
 # Use host-OS-specific config lines from bazelrc files.

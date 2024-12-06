@@ -146,10 +146,10 @@ def gl_cpp_workspace0(name = None):
         http_archive,
         name = "com_google_protobuf",
         urls = [
-            "https://github.com/protocolbuffers/protobuf/archive/v28.3.tar.gz",
+            "https://github.com/protocolbuffers/protobuf/archive/v29.1.tar.gz",
         ],
-#        sha256 = "3d32940e975c4ad9b8ba69640e78f5527075bae33ca2890275bf26b853c0962c",
-        strip_prefix = "protobuf-28.3",
+        sha256 = "3d32940e975c4ad9b8ba69640e78f5527075bae33ca2890275bf26b853c0962c",
+        strip_prefix = "protobuf-29.1",
     )
 
     # Load BoringSSL. This could be automatically loaded by gRPC. But as of
@@ -172,10 +172,10 @@ def gl_cpp_workspace0(name = None):
         http_archive,
         name = "com_github_grpc_grpc",
         urls = [
-            "https://github.com/grpc/grpc/archive/v1.67.0.tar.gz",
+            "https://github.com/grpc/grpc/archive/v1.68.2.tar.gz",
         ],
-#        sha256 = "afbc5d78d6ba6d509cc6e264de0d49dcd7304db435cbf2d630385bacf49e066c",
-        strip_prefix = "grpc-1.67.0",
+        sha256 = "afbc5d78d6ba6d509cc6e264de0d49dcd7304db435cbf2d630385bacf49e066c",
+        strip_prefix = "grpc-1.68.2",
     )
 
     # We use the cc_proto_library() rule from @com_google_protobuf, which
@@ -251,7 +251,6 @@ def gl_cpp_workspace0(name = None):
         urls = [
             "https://github.com/googleapis/google-cloud-cpp/archive/v2.31.0.tar.gz",
         ],
-#        sha256 = "b149109d5983cf8290d614654a878899a68b0c8902b64c934d06f47cd50ffe2e",
+        sha256 = "a484d74e060e5375f7b10e42e0c7a35db496312df7fadaff4f36bc66e8061c42",
         strip_prefix = "google-cloud-cpp-2.31.0",
     )
-

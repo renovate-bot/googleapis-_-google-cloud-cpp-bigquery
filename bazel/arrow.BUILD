@@ -19,4 +19,3 @@ cc_import(
     shared_library = "lib64/libarrow.so",
     visibility = ["//visibility:public"],
 )
-
