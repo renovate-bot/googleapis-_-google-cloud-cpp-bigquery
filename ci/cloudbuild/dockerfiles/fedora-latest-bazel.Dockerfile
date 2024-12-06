@@ -18,8 +18,8 @@ ARG ARCH=amd64
 
 # Install the minimal packages needed to install Bazel, and then compile our
 # code.
-RUN dnf install -y clang diffutils findutils gcc-c++ git lcov libcxx-devel \
-        libcxxabi-devel libasan libubsan libtsan llvm patch python python3 \
+RUN dnf install -y clang cmake diffutils findutils gcc-c++ git lcov libcxx-devel \
+        libcxxabi-devel libasan libubsan libtsan llvm ninja-build patch python python3 \
         python-pip tar unzip w3m wget which zip zlib-devel
 
 # Install the Python modules needed to run the storage emulator
@@ -54,13 +54,12 @@ RUN curl -o /usr/bin/bazelisk -sSL "https://github.com/bazelbuild/bazelisk/relea
     chmod +x /usr/bin/bazelisk && \
     ln -s /usr/bin/bazelisk /usr/bin/bazel
 
-# Download the packages needed to run Bigtable conformance tests.
-WORKDIR /var/tmp/downloads
-RUN wget -O go.tgz https://go.dev/dl/go1.20.5.linux-amd64.tar.gz
-RUN tar -C /usr/local/ -xzf go.tgz
-ENV GO_LOCATION=/usr/local/go
-ENV PATH=${GO_LOCATION}/bin:${PATH}
-RUN go version
-WORKDIR /var/tmp/downloads/cloud-bigtable-clients-test
-RUN curl -fsSL https://github.com/googleapis/cloud-bigtable-clients-test/archive/v0.0.2.tar.gz | \
-    tar -xzf - --strip-components=1
+WORKDIR /var/tmp/build/arrow
+RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S cpp -B cmake-out \
+      --preset ninja-release-minimal \
+      -DARROW_BUILD_STATIC=ON  && \
+    cmake --build cmake-out --target install && \
+    ldconfig && cd /var/tmp && rm -fr build
