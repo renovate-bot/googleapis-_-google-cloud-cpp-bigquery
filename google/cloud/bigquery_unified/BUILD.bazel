@@ -18,12 +18,18 @@ licenses(["notice"])  # Apache 2.0
 
 filegroup(
     name = "srcs",
-    srcs = glob(["*.cc", "internal/*.cc"]),
+    srcs = glob([
+        "*.cc",
+        "internal/*.cc",
+    ]),
 )
 
 filegroup(
     name = "hdrs",
-    srcs = glob(["*.h", "internal/*.h"]),
+    srcs = glob([
+        "*.h",
+        "internal/*.h",
+    ]),
 )
 
 filegroup(
