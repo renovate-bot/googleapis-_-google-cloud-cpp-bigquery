@@ -35,5 +35,8 @@ cmake-build-*/
 # Ignore the file with user-defined CMake presets
 CMakeUserPresets.json
 
+# We don't use bzlmod yet.
+MODULE.bazel
+
 # Lock files created by bzlmod. We do not want to accidentally commit these.
 MODULE.bazel.lock

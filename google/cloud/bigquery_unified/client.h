@@ -120,15 +120,6 @@ class Client {
       Options opts = {});
 
   // ReadArrow
-  //  defined in read_arrow_response.h
-  //  struct ReadArrowResponse {
-  //    std::int64_t estimated_total_bytes;
-  //    std::int64_t estimated_total_physical_file_size;
-  //    std::int64_t estimated_row_count;
-  //    google::protobuf::Timestamp expire_time;
-  //    std::shared_ptr<arrow::Schema> schema;
-  //    std::vector<StreamRange<std::shared_ptr<arrow::RecordBatch>>> readers;
-  //  };
   //
   // Unless `bigquery_unified::BillingProjectOption is set, the billing project
   // is assumed to be the same as the project owning the table.

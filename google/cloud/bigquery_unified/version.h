@@ -47,6 +47,11 @@
 #define GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END \
   } /* namespace GOOGLE_CLOUD_CPP_BIGQUERY_NS */
 
+namespace google::cloud::bigquery_unified_internal {
+auto constexpr kMaxMinorVersions = 100;
+auto constexpr kMaxPatchVersions = 100;
+}  // namespace google::cloud::bigquery_unified_internal
+
 /**
  * Contains all the Google Cloud C++ BigQuery Library APIs.
  */
@@ -89,19 +94,18 @@ constexpr char const* version_pre_release() {
   return GOOGLE_CLOUD_CPP_BIGQUERY_VERSION_PRE_RELEASE;
 }
 
-namespace internal {
-auto constexpr kMaxMinorVersions = 100;
-auto constexpr kMaxPatchVersions = 100;
-}  // namespace internal
-
 /// A single integer representing the Major/Minor/Patch version.
 int constexpr version() {
-  static_assert(version_minor() < internal::kMaxMinorVersions,
+  static_assert(version_minor() <
+                    google::cloud::bigquery_unified_internal::kMaxMinorVersions,
                 "version_minor() should be < kMaxMinorVersions");
-  static_assert(version_patch() < internal::kMaxPatchVersions,
+  static_assert(version_patch() <
+                    google::cloud::bigquery_unified_internal::kMaxPatchVersions,
                 "version_patch() should be < kMaxPatchVersions");
-  return internal::kMaxPatchVersions *
-             (internal::kMaxMinorVersions * version_major() + version_minor()) +
+  return google::cloud::bigquery_unified_internal::kMaxPatchVersions *
+             (google::cloud::bigquery_unified_internal::kMaxMinorVersions *
+                  version_major() +
+              version_minor()) +
          version_patch();
 }
 

@@ -5,11 +5,15 @@
   "license": "Apache-2.0",
   "supports": "!uwp",
   "dependencies": [
-	  {
-		  "name": "google-cloud-cpp",
-		  "default-features": false,
-		  "features": ["bigquery","bigquerycontrol"]
-	  },
-	  "arrow"
+    {
+      "name": "google-cloud-cpp",
+      "default-features": false,
+      "features": [
+        "bigquery",
+        "bigquerycontrol"
+      ]
+    },
+    "arrow",
+    "gtest"
   ]
 }

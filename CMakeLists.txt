@@ -22,9 +22,27 @@ set(PACKAGE_BUGREPORT
     "https://github.com/googleapis/google-cloud-cpp-bigquery/issues")
 project(
     google-cloud-cpp-bigquery
-    VERSION 0.0.1
+    VERSION 0.0.0
     LANGUAGES CXX)
 set(PROJECT_VERSION_PRE_RELEASE "rc")
+
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+include(CMakeDependentOption)
+cmake_dependent_option(
+    GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS
+    [==[Build the google-cloud-cpp-bigquery mocking libraries.
+
+google-cloud-cpp-bigquery offers mocking libraries with mock classes, to
+facilitate unit testing of Cloud C++ clients. Consumers of this library that do
+not use the provided mocks to test code involving the Cloud C++ clients may wish
+to turn this flag off.]==]
+    ON
+    "NOT BUILD_TESTING"
+    ON)
+mark_as_advanced(GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
+
+include(CTest)
 
 # TODO: remove always-on sanitizer before release
 add_compile_options(-fsanitize=address)
