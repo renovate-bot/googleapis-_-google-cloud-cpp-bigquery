@@ -105,9 +105,6 @@ endfunction ()
 cmake_print_variables(FEATURES)
 
 foreach (feature IN LISTS FEATURES)
-    add_compile_options(-fsanitize=address)
-    add_link_options(-fsanitize=address)
-
     add_cmake_quickstart_target("${feature}" "${feature}" quickstart)
     add_make_quickstart_target("${feature}" "${feature}" quickstart)
 endforeach ()

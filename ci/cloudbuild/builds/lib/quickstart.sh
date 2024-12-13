@@ -95,22 +95,6 @@ function quickstart::run_cmake_and_make() {
   done
 }
 
-#function quickstart::run_gcs_grpc_quickstart() {
-#  local prefix="$1"
-#  mapfile -t run_args < <(quickstart::arguments "storage")
-#  io::log_h2 "Running quickstart for GCS+gRPC"
-#
-#  io::log "[ CMake ]"
-#  local cmake_bin_dir="${PROJECT_ROOT}/cmake-out/quickstart/cmake-storage_grpc"
-#  "${cmake_bin_dir}/quickstart_grpc" "${run_args[@]}"
-#
-#  echo
-#  io::log "[ Make ]"
-#  local makefile_bin_dir="${PROJECT_ROOT}/cmake-out/quickstart/makefile-storage_grpc"
-#  LD_LIBRARY_PATH="${prefix}/lib64:${prefix}/lib:${LD_LIBRARY_PATH:-}" \
-#    "${makefile_bin_dir}/quickstart_grpc" "${run_args[@]}"
-#}
-
 function quickstart::run_one_quickstart() {
   local prefix="$1"
   local bin_dir_suffix="$2"
