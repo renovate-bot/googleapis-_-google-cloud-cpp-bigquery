@@ -12,7 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(CMakeFindDependencyMacro)
-@GOOGLE_CLOUD_CPP_ADDITIONAL_FIND_DEPENDENCIES@
+package(default_visibility = ["//visibility:private"])
 
-include("${CMAKE_CURRENT_LIST_DIR}/@GOOGLE_CLOUD_CPP_CONFIG_LIBRARY@-targets.cmake")
+licenses(["notice"])  # Apache 2.0
+
+CURRENT_TARGETS = [
+    ":bigquery_unified",
+]
+
+[cc_test(
+    name = "verify_" + target.replace("/", "_").replace(":", "_"),
+    srcs = [
+        "verify_current_targets.cc",
+    ],
+    deps = [
+        "@google_cloud_cpp//" + target,
+    ],
+) for target in CURRENT_TARGETS]

@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(CMakeFindDependencyMacro)
-@GOOGLE_CLOUD_CPP_ADDITIONAL_FIND_DEPENDENCIES@
-
-include("${CMAKE_CURRENT_LIST_DIR}/@GOOGLE_CLOUD_CPP_CONFIG_LIBRARY@-targets.cmake")
+filename: ci/cloudbuild/cloudbuild.yaml
+github:
+  name: google-cloud-cpp
+  owner: googleapis
+  push:
+    branch: ^main$
+includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
+name: cmake-install-ci
+substitutions:
+  _BUILD_NAME: cmake-install
+  _DISTRO: fedora-latest-cmake
+  _TRIGGER_TYPE: ci
+tags:
+- ci
