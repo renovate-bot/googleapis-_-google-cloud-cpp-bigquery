@@ -36,10 +36,9 @@ def gl_cpp_workspace3(name = None):
     protobuf_deps()
     opentelemetry_cpp_deps()
 
-    # Arrow dependency. Our CI builds expect the path to be /usr/local/
-    # You may need to create a symbolic link on other systems to find the
-    # libraries, e.g.:
-    # ln -s /usr/local/lib /usr/local/lib64
+    # As Apache Arrow does not provide bazel support nor are there currently
+    # any modules in the Bazel Central Registry, bazel builds expect Apache
+    # Arrow to already exist on the system.
     native.new_local_repository(
         name = "libarrow",
         path = "/usr/local/",

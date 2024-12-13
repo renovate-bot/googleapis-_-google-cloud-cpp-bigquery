@@ -50,6 +50,18 @@ RUN apt-get update && \
         ca-certificates \
         apt-transport-https
 
+# Install Apache Arrow and create symlinks to where our Bazel Workspace expects
+# to find the headers and libs.
+RUN apt install -y -V ca-certificates lsb-release wget
+RUN wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+RUN apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
+RUN apt update
+RUN apt install -y -V libarrow-dev
+RUN mkdir -p /usr/local/lib64
+RUN ln -s $(find /usr -name libarrow.a) /usr/local/lib64/libarrow.a
+RUN ln -s $(find /usr -name libarrow.so) /usr/local/lib64/libarrow.so
+RUN ln -s $(find /usr/include -name arrow -type d) /usr/local/include/arrow
+
 # Install Python packages used in the integration tests.
 RUN update-alternatives --install /usr/bin/python python $(which python3) 10
 RUN apt update && apt install python3-setuptools python3-wheel
@@ -64,6 +76,7 @@ WORKDIR /var/tmp/downloads
 RUN /var/tmp/ci/install-cloud-sdk.sh
 ENV CLOUD_SDK_LOCATION=/usr/local/google-cloud-sdk
 ENV PATH=${CLOUD_SDK_LOCATION}/bin:${PATH}
+ENV LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
 
 RUN curl -o /usr/bin/bazelisk -sSL "https://github.com/bazelbuild/bazelisk/releases/download/v1.24.1/bazelisk-linux-${ARCH}" && \
     chmod +x /usr/bin/bazelisk && \
