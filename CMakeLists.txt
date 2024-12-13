@@ -46,8 +46,4 @@ mark_as_advanced(GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
 
 include(CTest)
 
-# TODO: remove always-on sanitizer before release
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
-
 add_subdirectory(google/cloud/bigquery_unified)

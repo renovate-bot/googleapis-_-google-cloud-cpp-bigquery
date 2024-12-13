@@ -31,10 +31,6 @@ find_package(PkgConfig REQUIRED)
 find_package(Threads REQUIRED)
 include(CTest)
 
-# TODO: remove always-on sanitizer before release
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
-
 function (add_test_case name)
     add_executable("${name}" verify_current_targets.cc)
     target_link_libraries("${name}" PRIVATE ${ARGN})
