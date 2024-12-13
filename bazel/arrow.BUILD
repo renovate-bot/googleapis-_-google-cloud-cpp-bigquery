@@ -14,14 +14,18 @@
 
 package(default_visibility = ["//visibility:public"])
 
-# Arrow dependency. Our CI builds expect the libraries to be in
-# /usr/local/lib64.
+# Our CI builds expect the libraries to be in
+# /usr/local/lib64 and the headers in /usr/include/arrow.
 # You may need to create a symbolic link on other systems, e.g.:
-# ln -s /usr/local/lib /usr/local/lib64
+# mkdir -p /usr/local/lib64
+# ln -s $(find /usr -name libarrow.a) /usr/local/lib64/libarrow.a
+# ln -s $(find /usr -name libarrow.so) /usr/local/lib64/libarrow.so
+# ln -s $(find /usr/include -name arrow -type d) /usr/local/include/arrow
 cc_import(
     name = "libarrow",
     hdrs = glob(["include/arrow/*.h"]),
-    shared_library = "lib64/libarrow.so.1801",
+    interface_library = "lib64/libarrow.so",
     static_library = "lib64/libarrow.a",
+    system_provided = True,
     visibility = ["//visibility:public"],
 )
