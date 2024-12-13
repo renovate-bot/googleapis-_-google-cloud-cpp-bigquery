@@ -12,20 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:private"])
-
 licenses(["notice"])  # Apache 2.0
 
-CURRENT_TARGETS = [
-    ":bigquery_unified",
-]
-
-[cc_test(
-    name = "verify_" + target.replace("/", "_").replace(":", "_"),
+cc_binary(
+    name = "quickstart",
     srcs = [
-        "verify_current_targets.cc",
+        "quickstart.cc",
     ],
     deps = [
-        "@google_cloud_cpp_bigquery//" + target,
+        "@google_cloud_cpp_bigquery//:bigquery_unified",
     ],
-) for target in CURRENT_TARGETS]
+)

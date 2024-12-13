@@ -26,6 +26,12 @@ filegroup(
     visibility = ["//:__pkg__"],
 )
 
+filegroup(
+    name = "mocks",
+    srcs = [h for h in google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs if not h.startswith("internal/")],
+    visibility = ["//:__pkg__"],
+)
+
 cc_library(
     name = "google_cloud_cpp_bigquery_bigquery_unified",
     srcs = google_cloud_cpp_bigquery_bigquery_unified_srcs,

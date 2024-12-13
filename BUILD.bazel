@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("//bazel:library_names.bzl", "hdrs_filegroup_name", "library_dir_name", "mocks_filegroup_name")
+load(":libraries.bzl", "GOOGLE_CLOUD_CPP_BIGQUERY_EXPERIMENTAL_LIBRARIES", "GOOGLE_CLOUD_CPP_BIGQUERY_GA_LIBRARIES", "GOOGLE_CLOUD_CPP_BIGQUERY_TRANSITION_LIBRARIES")
+
 package(default_visibility = ["//visibility:public"])
 
 licenses(["notice"])  # Apache 2.0
@@ -19,3 +22,100 @@ licenses(["notice"])  # Apache 2.0
 exports_files([
     "LICENSE",
 ])
+
+EXPERIMENTAL_LIBRARIES = GOOGLE_CLOUD_CPP_BIGQUERY_EXPERIMENTAL_LIBRARIES
+
+TRANSITION_LIBRARIES = GOOGLE_CLOUD_CPP_BIGQUERY_TRANSITION_LIBRARIES
+
+GA_LIBRARIES = GOOGLE_CLOUD_CPP_BIGQUERY_GA_LIBRARIES
+
+[cc_library(
+    name = "experimental-{library}".format(library = library),
+    hdrs = ["//google/cloud/{dir}:{group}".format(
+        dir = library_dir_name(library),
+        group = hdrs_filegroup_name(library),
+    )],
+    deps = [
+        "//google/cloud/{dir}:google_cloud_cpp_bigquery_{library}".format(
+            dir = library_dir_name(library),
+            library = library,
+        ),
+    ],
+) for library in EXPERIMENTAL_LIBRARIES]
+
+[cc_library(
+    name = "experimental-{library}_mocks".format(library = library),
+    testonly = True,
+    hdrs = ["//google/cloud/{dir}:{group}".format(
+        dir = library_dir_name(library),
+        group = mocks_filegroup_name(library),
+    )],
+    deps = [
+        "//google/cloud/{dir}:google_cloud_cpp_bigquery_{library}_mocks".format(
+            dir = library_dir_name(library),
+            library = library,
+        ),
+    ],
+) for library in EXPERIMENTAL_LIBRARIES]
+
+[cc_library(
+    name = "experimental-{library}".format(library = library),
+    hdrs = ["//google/cloud/{dir}:{group}".format(
+        dir = library_dir_name(library),
+        group = hdrs_filegroup_name(library),
+    )],
+    deprecation = "this library is now GA, please use //:{library} instead.".format(library = library),
+    tags = ["manual"],
+    deps = [
+        "//google/cloud/{dir}:google_cloud_cpp_bigquery_{library}".format(
+            dir = library_dir_name(library),
+            library = library,
+        ),
+    ],
+) for library in TRANSITION_LIBRARIES]
+
+[cc_library(
+    name = "experimental-{library}_mocks".format(library = library),
+    testonly = True,
+    hdrs = ["//google/cloud/{dir}:{group}".format(
+        dir = library_dir_name(library),
+        group = mocks_filegroup_name(library),
+    )],
+    deprecation = "this library is now GA, please use //:{library}_mocks instead.".format(library = library),
+    tags = ["manual"],
+    deps = [
+        "//google/cloud/{dir}:google_cloud_cpp_bigquery_{library}_mocks".format(
+            dir = library_dir_name(library),
+            library = library,
+        ),
+    ],
+) for library in TRANSITION_LIBRARIES]
+
+[cc_library(
+    name = "{library}".format(library = library),
+    hdrs = ["//google/cloud/{dir}:{group}".format(
+        dir = library_dir_name(library),
+        group = hdrs_filegroup_name(library),
+    )],
+    deps = [
+        "//google/cloud/{dir}:google_cloud_cpp_bigquery_{library}".format(
+            dir = library_dir_name(library),
+            library = library,
+        ),
+    ],
+) for library in GA_LIBRARIES + TRANSITION_LIBRARIES]
+
+[cc_library(
+    name = "{library}_mocks".format(library = library),
+    testonly = True,
+    hdrs = ["//google/cloud/{dir}:{group}".format(
+        dir = library_dir_name(library),
+        group = mocks_filegroup_name(library),
+    )],
+    deps = [
+        "//google/cloud/{dir}:google_cloud_cpp_bigquery_{library}_mocks".format(
+            dir = library_dir_name(library),
+            library = library,
+        ),
+    ],
+) for library in GA_LIBRARIES + TRANSITION_LIBRARIES]
