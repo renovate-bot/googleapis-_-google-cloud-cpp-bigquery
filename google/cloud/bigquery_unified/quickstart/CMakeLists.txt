@@ -27,10 +27,5 @@ else ()
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 endif ()
 
-# TODO: figure out a better way to inject these during CI builds. They shouldn't
-# be added all the time.
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
-
 add_executable(quickstart quickstart.cc)
 target_link_libraries(quickstart google-cloud-cpp-bigquery::bigquery_unified)
