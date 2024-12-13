@@ -22,6 +22,12 @@ build --enable_bzlmod=false
 # Use host-OS-specific config lines from bazelrc files.
 build --enable_platform_specific_config=true
 
+# Currently, libarrow is built with the address sanitizer enabled, so we have
+# to make sure bazel uses it accordingly.
+test:linux --config=asan
+build:linux --config=asan
+run:linux --config=asan
+
 # The project requires C++ >= 17. By default Bazel adds `-std=c++0x` which
 # disables C++17 features, even if the compilers defaults to C++ >= 17
 build:linux --cxxopt=-std=c++17

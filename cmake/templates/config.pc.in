@@ -12,16 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-package(default_visibility = ["//visibility:public"])
+prefix=${pcfiledir}/../..
+exec_prefix=${prefix}
+libdir=@GOOGLE_CLOUD_CPP_PC_LIBDIR@
+includedir=@GOOGLE_CLOUD_CPP_PC_INCLUDEDIR@
 
-# Arrow dependency. Our CI builds expect the libraries to be in
-# /usr/local/lib64.
-# You may need to create a symbolic link on other systems, e.g.:
-# ln -s /usr/local/lib /usr/local/lib64
-cc_import(
-    name = "libarrow",
-    hdrs = glob(["include/arrow/*.h"]),
-    shared_library = "lib64/libarrow.so.1801",
-    static_library = "lib64/libarrow.a",
-    visibility = ["//visibility:public"],
-)
+Name: @GOOGLE_CLOUD_CPP_PC_NAME@
+Description: @GOOGLE_CLOUD_CPP_PC_DESCRIPTION@
+Requires: @GOOGLE_CLOUD_CPP_PC_REQUIRES@
+Version: @DOXYGEN_PROJECT_NUMBER@
+
+Libs: -L${libdir} @GOOGLE_CLOUD_CPP_PC_LIBS@
+Cflags: -I${includedir} @GOOGLE_CLOUD_CPP_PC_CFLAGS@
