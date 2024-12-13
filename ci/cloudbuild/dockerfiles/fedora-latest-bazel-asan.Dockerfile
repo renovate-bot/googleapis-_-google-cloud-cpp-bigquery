@@ -74,4 +74,3 @@ RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.g
     ldconfig && cd /var/tmp && rm -fr build
 
 ENV LD_LIBRARY_PATH=/usr/local/lib64:${LD_LIBRARY_PATH}
-
