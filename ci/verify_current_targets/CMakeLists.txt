@@ -1,0 +1,57 @@
+# ~~~
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ~~~
+
+cmake_minimum_required(VERSION 3.10...3.24)
+project(verify-exported-targets CXX)
+
+# We list the common libraries first because we want to load their packages
+# early. set(common_libraries common grpc_utils mocks rest_internal)
+
+# Define GA libraries.
+set(ga_libraries # cmake-format: sort
+                 bigquery_unified)
+
+# CMake can use pkg-config to find dependencies. We recommend using CMake
+# targets, but we want to verify our pkg-config files remain usable and
+# backwards compatible.
+find_package(PkgConfig REQUIRED)
+find_package(Threads REQUIRED)
+include(CTest)
+
+# TODO: remove always-on sanitizer before release
+add_compile_options(-fsanitize=address)
+add_link_options(-fsanitize=address)
+
+function (add_test_case name)
+    add_executable("${name}" verify_current_targets.cc)
+    target_link_libraries("${name}" PRIVATE ${ARGN})
+    add_test(NAME "${name}" COMMAND "${name}")
+endfunction ()
+
+foreach (library ${ga_libraries})
+    find_package("google_cloud_cpp_bigquery_${library}" REQUIRED)
+endforeach ()
+
+foreach (library ${ga_libraries})
+    add_test_case(test_cmake_${library} google-cloud-cpp-bigquery::${library})
+endforeach ()
+
+foreach (library ${ga_libraries})
+    message("library=${library}")
+    pkg_check_modules(${library} IMPORTED_TARGET REQUIRED
+                      google_cloud_cpp_bigquery_${library})
+    add_test_case(test_pc_${library} PkgConfig::${library})
+endforeach ()

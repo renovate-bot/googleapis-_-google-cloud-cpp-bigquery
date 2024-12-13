@@ -12,14 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! [all]
-#include "google/cloud/bigquery_unified/client.h"
+#include "google/cloud/bigquery_unified/version.h"
 #include <iostream>
 
-int main(int argc, char* argv[]) {
-  auto connection = google::cloud::bigquery_unified::MakeConnection();
-  std::cout << "side effect to try and fool the optimizer: " << connection.get()
+int main() {
+  std::cout << "Hello: " << google::cloud::bigquery_unified::version_string()
             << "\n";
-  std::cout << "Hello, world!\n";
+  return 0;
 }
-//! [all]

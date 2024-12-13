@@ -1,0 +1,12 @@
+.
+./include
+./include/google
+./include/google/cloud
+./include/google/cloud/bigquery_unified
+./include/google/cloud/bigquery_unified/internal
+./include/google/cloud/bigquery_unified/mocks
+./lib64
+./lib64/cmake
+./lib64/cmake/google_cloud_cpp_bigquery_bigquery_unified
+./lib64/cmake/google_cloud_cpp_bigquery_bigquery_unified_mocks
+./lib64/pkgconfig

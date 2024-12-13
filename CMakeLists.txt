@@ -28,6 +28,8 @@ set(PROJECT_VERSION_PRE_RELEASE "rc")
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+include(GoogleCloudCppFeatures)
+
 include(CMakeDependentOption)
 cmake_dependent_option(
     GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS

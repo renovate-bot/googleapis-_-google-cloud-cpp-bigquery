@@ -12,7 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-include(CMakeFindDependencyMacro)
-@GOOGLE_CLOUD_CPP_ADDITIONAL_FIND_DEPENDENCIES@
+licenses(["notice"])  # Apache 2.0
 
-include("${CMAKE_CURRENT_LIST_DIR}/@GOOGLE_CLOUD_CPP_CONFIG_LIBRARY@-targets.cmake")
+cc_binary(
+    name = "quickstart",
+    srcs = [
+        "quickstart.cc",
+    ],
+    deps = [
+        "@google_cloud_cpp_bigquery//:bigquery_unified",
+    ],
+)

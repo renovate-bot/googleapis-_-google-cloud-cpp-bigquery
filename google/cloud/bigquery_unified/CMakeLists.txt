@@ -63,7 +63,8 @@ include(GNUInstallDirs)
 # Export the CMake targets to make it easy to create configuration files.
 install(
     EXPORT google_cloud_cpp_bigquery_bigquery_unified-targets
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${library_target}"
+    DESTINATION
+        "${CMAKE_INSTALL_LIBDIR}/cmake/google_cloud_cpp_bigquery_bigquery_unified"
     COMPONENT google_cloud_cpp_bigquery_development)
 
 # Install the libraries and headers in the locations determined by
@@ -81,7 +82,7 @@ install(
 
 google_cloud_cpp_bigquery_install_headers(
     google_cloud_cpp_bigquery_bigquery_unified
-    "include/google/cloud/${library}")
+    "include/google/cloud/bigquery_unified")
 
 google_cloud_cpp_bigquery_add_pkgconfig(
     bigquery_unified "The BigQuery Unified C++ Client Library"
@@ -95,7 +96,7 @@ set(GOOGLE_CLOUD_CPP_CONFIG_LIBRARY
 list(APPEND find_dependencies "find_dependency(google_cloud_cpp_bigquery)")
 list(APPEND find_dependencies
      "find_dependency(google_cloud_cpp_bigquerycontrol)")
-list(APPEND find_dependencies "find_dependency(arrow)")
+list(APPEND find_dependencies "find_dependency(Arrow)")
 string(JOIN "\n" GOOGLE_CLOUD_CPP_ADDITIONAL_FIND_DEPENDENCIES
        ${find_dependencies})
 configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config.cmake.in"
