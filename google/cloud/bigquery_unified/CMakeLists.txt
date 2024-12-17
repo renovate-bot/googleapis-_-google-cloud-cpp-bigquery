@@ -202,9 +202,7 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
                                             "Google Cloud BigQuery Unified")
 endif ()
 
-function (bigquery_unified_define_testing_util)
-
-endfunction ()
+add_subdirectory(testing_util)
 
 # Define the tests in a function so we have a new scope for variable names.
 function (bigquery_unified_client_define_tests)
@@ -237,8 +235,6 @@ function (bigquery_unified_client_define_tests)
         add_dependencies(bigquery_unified-client-tests ${target})
     endforeach ()
 endfunction ()
-
-add_subdirectory(testing_util)
 
 if (BUILD_TESTING)
     bigquery_unified_client_define_tests()
