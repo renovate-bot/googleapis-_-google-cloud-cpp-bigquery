@@ -23,6 +23,14 @@ exports_files([
     "LICENSE",
 ])
 
+cc_library(
+    name = "common",
+    hdrs = ["//google/cloud/bigquery_unified:common_public_hdrs"],
+    deps = [
+        "//google/cloud/bigquery_unified:google_cloud_cpp_bigquery_common",
+    ],
+)
+
 EXPERIMENTAL_LIBRARIES = GOOGLE_CLOUD_CPP_BIGQUERY_EXPERIMENTAL_LIBRARIES
 
 TRANSITION_LIBRARIES = GOOGLE_CLOUD_CPP_BIGQUERY_TRANSITION_LIBRARIES
