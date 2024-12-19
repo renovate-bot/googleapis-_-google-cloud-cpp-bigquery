@@ -203,6 +203,7 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
 endif ()
 
 add_subdirectory(testing_util)
+add_subdirectory(integration_tests)
 
 # Define the tests in a function so we have a new scope for variable names.
 function (bigquery_unified_client_define_tests)
