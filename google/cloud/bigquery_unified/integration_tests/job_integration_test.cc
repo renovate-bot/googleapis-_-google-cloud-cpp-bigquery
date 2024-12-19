@@ -21,12 +21,6 @@ namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
-using ::google::cloud::bigquery_unified::testing_util::IsOkAndHolds;
-using ::testing::AllOf;
-using ::testing::Eq;
-using ::testing::ResultOf;
-using ::testing::Return;
-
 TEST(JobIntegrationTest, Success) { EXPECT_TRUE(true); }
 
 }  // namespace
