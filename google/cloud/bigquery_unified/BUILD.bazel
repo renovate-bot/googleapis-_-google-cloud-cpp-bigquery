@@ -15,10 +15,27 @@
 load(":bigquery_unified_client_unit_tests.bzl", "bigquery_unified_client_unit_tests")
 load(":google_cloud_cpp_bigquery_bigquery_unified.bzl", "google_cloud_cpp_bigquery_bigquery_unified_hdrs", "google_cloud_cpp_bigquery_bigquery_unified_srcs")
 load(":google_cloud_cpp_bigquery_bigquery_unified_mocks.bzl", "google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs")
+load(":google_cloud_cpp_bigquery_common.bzl", "google_cloud_cpp_bigquery_common_hdrs", "google_cloud_cpp_bigquery_common_srcs")
 
 package(default_visibility = ["//visibility:private"])
 
 licenses(["notice"])  # Apache 2.0
+
+filegroup(
+    name = "common_public_hdrs",
+    srcs = [h for h in google_cloud_cpp_bigquery_common_hdrs if not h.startswith("internal/")],
+    visibility = ["//:__pkg__"],
+)
+
+cc_library(
+    name = "google_cloud_cpp_bigquery_common",
+    srcs = google_cloud_cpp_bigquery_common_srcs,
+    hdrs = google_cloud_cpp_bigquery_common_hdrs,
+    visibility = ["//:__pkg__"],
+    deps = [
+        "@google_cloud_cpp//:common",
+    ],
+)
 
 filegroup(
     name = "public_hdrs",
@@ -38,6 +55,7 @@ cc_library(
     hdrs = google_cloud_cpp_bigquery_bigquery_unified_hdrs,
     visibility = ["//:__pkg__"],
     deps = [
+        ":google_cloud_cpp_bigquery_common",
         "@google_cloud_cpp//:bigquery",
         "@google_cloud_cpp//:experimental-bigquerycontrol",
         "@libarrow",
@@ -65,6 +83,7 @@ cc_library(
     deps = [
         ":google_cloud_cpp_bigquery_bigquery_unified",
         ":google_cloud_cpp_bigquery_bigquery_unified_mocks",
+        "//google/cloud/bigquery_unified/testing_util:google_cloud_cpp_bigquery_bigquery_unified_testing_private",
         "@com_google_googletest//:gtest_main",
     ],
 ) for test in bigquery_unified_client_unit_tests]

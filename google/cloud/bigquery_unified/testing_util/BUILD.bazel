@@ -1,0 +1,45 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load(":google_cloud_cpp_bigquery_bigquery_unified_testing.bzl", "google_cloud_cpp_bigquery_bigquery_unified_testing_hdrs", "google_cloud_cpp_bigquery_bigquery_unified_testing_srcs")
+
+# The targets in this package are intended for testing our own libraries, and
+# are not intended for public usage.
+package(default_visibility = ["//:__subpackages__"])
+
+licenses(["notice"])  # Apache 2.0
+
+cc_library(
+    name = "google_cloud_cpp_bigquery_bigquery_unified_testing_private",
+    testonly = True,
+    srcs = google_cloud_cpp_bigquery_bigquery_unified_testing_srcs,
+    hdrs = google_cloud_cpp_bigquery_bigquery_unified_testing_hdrs,
+    defines = select({
+        "@platforms//os:linux": [
+            "GOOGLE_CLOUD_CPP_HAVE_GETRUSAGE",
+            "GOOGLE_CLOUD_CPP_HAVE_RUSAGE_THREAD",
+        ],
+        "@platforms//os:macos": [
+            "GOOGLE_CLOUD_CPP_HAVE_GETRUSAGE",
+        ],
+        "//conditions:default": [],
+    }),
+    deps = [
+        "//:common",
+        "@com_google_absl//absl/debugging:failure_signal_handler",
+        "@com_google_absl//absl/debugging:symbolize",
+        "@com_google_googletest//:gtest_main",
+        "@google_cloud_cpp//:common",
+    ],
+)

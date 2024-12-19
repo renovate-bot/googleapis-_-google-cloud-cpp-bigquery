@@ -14,5 +14,56 @@
 
 #include "google/cloud/bigquery_unified/client.h"
 #include "google/cloud/bigquery_unified/mocks/mock_connection.h"
+#include "google/cloud/bigquery_unified/testing_util/status_matchers.h"
 
-TEST(BigQueryUnifiedClientTest, Success) { EXPECT_TRUE(true); }
+namespace google::cloud::bigquery_unified {
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
+namespace {
+
+using ::google::cloud::bigquery_unified::testing_util::IsOkAndHolds;
+using ::testing::AllOf;
+using ::testing::Eq;
+using ::testing::ResultOf;
+using ::testing::Return;
+
+struct TestOption {
+  using Type = std::string;
+};
+
+TEST(BigQueryUnifiedClientTest, GetJobSuccess) {
+  auto mock_connection = std::make_shared<MockConnection>();
+
+  auto call_options = Options{}.set<TestOption>("call-test-option");
+
+  EXPECT_CALL(*mock_connection, GetJob)
+      .WillOnce([&](google::cloud::bigquery::v2::GetJobRequest const& request,
+                    Options opts) {
+        EXPECT_THAT(request.project_id(), Eq("my-project-id"));
+        EXPECT_THAT(opts.get<TestOption>(), Eq(call_options.get<TestOption>()));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id("my-project-id");
+        job.mutable_job_reference()->set_job_id("my-job-id");
+        return job;
+      });
+
+  auto client =
+      Client(mock_connection, Options{}.set<TestOption>("client-test-option"));
+  google::cloud::bigquery::v2::GetJobRequest request;
+  request.set_project_id("my-project-id");
+  auto get_result = client.GetJob(request, call_options);
+  EXPECT_THAT(
+      get_result,
+      IsOkAndHolds(AllOf(
+          ResultOf(
+              "project id",
+              [](auto const& x) { return x.job_reference().project_id(); },
+              "my-project-id"),
+          ResultOf(
+              "job id",
+              [](auto const& x) { return x.job_reference().job_id(); },
+              "my-job-id"))));
+}
+
+}  // namespace
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
+}  // namespace google::cloud::bigquery_unified

@@ -15,14 +15,15 @@
 #include "google/cloud/bigquery_unified/client.h"
 #include "google/cloud/internal/make_status.h"
 #include "google/cloud/internal/pagination_range.h"
+#include "google/cloud/options.h"
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
 Client::Client(std::shared_ptr<Connection> connection, Options opts)
     : connection_(std::move(connection)),
-      options_(google::cloud::internal::MergeOptions(std::move(opts),
-                                                     connection_->options())) {}
+      options_(
+          internal::MergeOptions(std::move(opts), connection_->options())) {}
 
 future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
 Client::CancelJob(google::cloud::bigquery::v2::CancelJobRequest const& request,
@@ -50,7 +51,8 @@ Client::CancelJob(
 
 StatusOr<google::cloud::bigquery::v2::Job> Client::GetJob(
     google::cloud::bigquery::v2::GetJobRequest const& request, Options opts) {
-  return internal::UnimplementedError("not implemented");
+  return connection_->GetJob(request,
+                             internal::MergeOptions(std::move(opts), options_));
 }
 
 Status Client::DeleteJob(

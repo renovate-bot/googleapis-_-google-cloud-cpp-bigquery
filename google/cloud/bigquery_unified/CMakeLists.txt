@@ -22,99 +22,141 @@ find_package(google_cloud_cpp_bigquery REQUIRED)
 find_package(google_cloud_cpp_bigquerycontrol REQUIRED)
 find_package(Arrow REQUIRED)
 
-add_library(
-    google_cloud_cpp_bigquery_bigquery_unified # cmake-format: sort
-    client.cc
-    client.h
-    connection.cc
-    connection.h
-    internal/version_info.h
-    read_arrow_response.h
-    version.cc
-    version.h)
+function (bigquery_unified_library library_name library_alias)
+    cmake_parse_arguments(_opt "EXPERIMENTAL;TRANSITION;INSTALL" "INITIAL_YEAR"
+                          "LIBRARY_FILES;DEPS;PKGCONFIG_DEPS" ${ARGN})
 
-target_include_directories(
-    google_cloud_cpp_bigquery_bigquery_unified
-    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
-           $<INSTALL_INTERFACE:include>)
-target_link_libraries(
-    google_cloud_cpp_bigquery_bigquery_unified
-    PUBLIC google-cloud-cpp::bigquery
-           google-cloud-cpp::experimental-bigquerycontrol
-           google-cloud-cpp::grpc_utils
-           google-cloud-cpp::common
-           Arrow::arrow_static)
-set_target_properties(
-    google_cloud_cpp_bigquery_bigquery_unified
-    PROPERTIES EXPORT_NAME "google-cloud-cpp-bigquery::bigquery_unified"
-               VERSION "${PROJECT_VERSION}"
-               SOVERSION "${PROJECT_VERSION_MAJOR}")
-target_compile_options(google_cloud_cpp_bigquery_bigquery_unified
-                       PUBLIC ${GOOGLE_CLOUD_CPP_EXCEPTIONS_FLAG})
-add_library(google-cloud-cpp-bigquery::bigquery_unified ALIAS
-            google_cloud_cpp_bigquery_bigquery_unified)
+    add_library(${library_name} ${_opt_LIBRARY_FILES})
 
-create_bazel_config(google_cloud_cpp_bigquery_bigquery_unified YEAR "2024")
+    target_include_directories(
+        ${library_name}
+        PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+               $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
+               $<INSTALL_INTERFACE:include>)
+    target_link_libraries(${library_name} PUBLIC ${_opt_DEPS})
+    set_target_properties(
+        ${library_name}
+        PROPERTIES EXPORT_NAME "google-cloud-cpp-bigquery::${library_alias}"
+                   VERSION "${PROJECT_VERSION}"
+                   SOVERSION "${PROJECT_VERSION_MAJOR}")
+    target_compile_options(${library_name}
+                           PUBLIC ${GOOGLE_CLOUD_CPP_EXCEPTIONS_FLAG})
+    add_library(google-cloud-cpp-bigquery::${library_alias} ALIAS
+                ${library_name})
 
-# Get the destination directories based on the GNU recommendations.
-include(GNUInstallDirs)
+    create_bazel_config(${library_name} YEAR ${_opt_INITIAL_YEAR})
 
-# Export the CMake targets to make it easy to create configuration files.
-install(
-    EXPORT google_cloud_cpp_bigquery_bigquery_unified-targets
-    DESTINATION
-        "${CMAKE_INSTALL_LIBDIR}/cmake/google_cloud_cpp_bigquery_bigquery_unified"
-    COMPONENT google_cloud_cpp_bigquery_development)
+    if (${_opt_INSTALL})
+        # Get the destination directories based on the GNU recommendations.
+        include(GNUInstallDirs)
 
-# Install the libraries and headers in the locations determined by
-# GNUInstallDirs
-install(
-    TARGETS google_cloud_cpp_bigquery_bigquery_unified
-    EXPORT google_cloud_cpp_bigquery_bigquery_unified-targets
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-            COMPONENT google_cloud_cpp_bigquery_runtime
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT google_cloud_cpp_bigquery_runtime
-            NAMELINK_COMPONENT google_cloud_cpp_bigquery_development
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        # Export the CMake targets to make it easy to create configuration
+        # files.
+        install(
+            EXPORT ${library_name}-targets
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${library_name}"
             COMPONENT google_cloud_cpp_bigquery_development)
 
-google_cloud_cpp_bigquery_install_headers(
+        # Install the libraries and headers in the locations determined by
+        # GNUInstallDirs
+        install(
+            TARGETS ${library_name}
+            EXPORT ${library_name}-targets
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                    COMPONENT google_cloud_cpp_bigquery_runtime
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    COMPONENT google_cloud_cpp_bigquery_runtime
+                    NAMELINK_COMPONENT google_cloud_cpp_bigquery_development
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+                    COMPONENT google_cloud_cpp_bigquery_development)
+
+        google_cloud_cpp_bigquery_install_headers(
+            ${library_name} "include/google/cloud/bigquery_unified")
+
+        google_cloud_cpp_bigquery_add_pkgconfig(
+            ${library_alias} "The BigQuery Unified C++ Client Library"
+            "Provides C++ APIs to use the BigQuery Unified API."
+            ${_opt_PKGCONFIG_DEPS})
+
+        # Create and install the CMake configuration files.
+        include(CMakePackageConfigHelpers)
+        set(GOOGLE_CLOUD_CPP_CONFIG_LIBRARY "${library_name}")
+
+        foreach (lib IN LISTS _opt_PKGCONFIG_DEPS)
+            list(APPEND find_dependencies "find_dependency(${lib})")
+        endforeach ()
+
+        string(JOIN "\n" GOOGLE_CLOUD_CPP_ADDITIONAL_FIND_DEPENDENCIES
+               ${find_dependencies})
+        configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config.cmake.in"
+                       "${library_name}-config.cmake" @ONLY)
+        write_basic_package_version_file(
+            "${library_name}-config-version.cmake"
+            VERSION ${PROJECT_VERSION}
+            COMPATIBILITY ExactVersion)
+
+        install(
+            FILES
+                "${CMAKE_CURRENT_BINARY_DIR}/${library_name}-config.cmake"
+                "${CMAKE_CURRENT_BINARY_DIR}/${library_name}-config-version.cmake"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${library_name}"
+            COMPONENT google_cloud_cpp_bigquery_development)
+    endif ()
+endfunction ()
+
+set(bigquery_unified_common_library_files
+    # cmake-format: sort
+    internal/version_info.h version.cc version.h)
+
+set(bigquery_unified_common_library_deps # cmake-format: sort
+                                         google-cloud-cpp::common)
+
+set(bigquery_unified_common_library_pkgconfig_deps # cmake-format: sort
+                                                   google_cloud_cpp_common)
+
+bigquery_unified_library(
+    google_cloud_cpp_bigquery_common
+    common
+    INSTALL
+    INITIAL_YEAR
+    "2024"
+    LIBRARY_FILES
+    ${bigquery_unified_common_library_files}
+    DEPS
+    ${bigquery_unified_common_library_deps}
+    PKGCONFIG_DEPS
+    ${bigquery_unified_common_library_pkgconfig_deps})
+
+set(bigquery_unified_library_files
+    # cmake-format: sort
+    client.cc client.h connection.cc connection.h read_arrow_response.h)
+
+set(bigquery_unified_deps
+    # cmake-format: sort
+    Arrow::arrow_static
+    google-cloud-cpp-bigquery::common
+    google-cloud-cpp::bigquery
+    google-cloud-cpp::experimental-bigquerycontrol
+    google-cloud-cpp::grpc_utils)
+
+set(bigquery_unified_pkgconfig_deps
+    # cmake-format: sort
+    arrow google_cloud_cpp_bigquery google_cloud_cpp_bigquery_common
+    google_cloud_cpp_bigquerycontrol)
+
+bigquery_unified_library(
     google_cloud_cpp_bigquery_bigquery_unified
-    "include/google/cloud/bigquery_unified")
+    bigquery_unified
+    INSTALL
+    INITIAL_YEAR
+    "2024"
+    LIBRARY_FILES
+    ${bigquery_unified_library_files}
+    DEPS
+    ${bigquery_unified_deps}
+    PKGCONFIG_DEPS
+    ${bigquery_unified_pkgconfig_deps})
 
-google_cloud_cpp_bigquery_add_pkgconfig(
-    bigquery_unified "The BigQuery Unified C++ Client Library"
-    "Provides C++ APIs to use the BigQuery Unified API."
-    google_cloud_cpp_bigquery google_cloud_cpp_bigquerycontrol arrow)
-
-# Create and install the CMake configuration files.
-include(CMakePackageConfigHelpers)
-set(GOOGLE_CLOUD_CPP_CONFIG_LIBRARY
-    "google_cloud_cpp_bigquery_bigquery_unified")
-list(APPEND find_dependencies "find_dependency(google_cloud_cpp_bigquery)")
-list(APPEND find_dependencies
-     "find_dependency(google_cloud_cpp_bigquerycontrol)")
-list(APPEND find_dependencies "find_dependency(Arrow)")
-string(JOIN "\n" GOOGLE_CLOUD_CPP_ADDITIONAL_FIND_DEPENDENCIES
-       ${find_dependencies})
-configure_file("${PROJECT_SOURCE_DIR}/cmake/templates/config.cmake.in"
-               "google_cloud_cpp_bigquery_bigquery_unified-config.cmake" @ONLY)
-write_basic_package_version_file(
-    "google_cloud_cpp_bigquery_bigquery_unified-config-version.cmake"
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY ExactVersion)
-
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/google_cloud_cpp_bigquery_bigquery_unified-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/google_cloud_cpp_bigquery_bigquery_unified-config-version.cmake"
-    DESTINATION
-        "${CMAKE_INSTALL_LIBDIR}/cmake/google_cloud_cpp_bigquery_bigquery_unified"
-    COMPONENT google_cloud_cpp_bigquery_development)
-
-# TODO: Change this to use the MOCKS define
 if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
     add_library(google_cloud_cpp_bigquery_bigquery_unified_mocks INTERFACE)
     set(google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs
@@ -160,6 +202,8 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
                                             "Google Cloud BigQuery Unified")
 endif ()
 
+add_subdirectory(testing_util)
+
 # Define the tests in a function so we have a new scope for variable names.
 function (bigquery_unified_client_define_tests)
     # The tests require googletest to be installed. Force CMake to use the
@@ -182,8 +226,10 @@ function (bigquery_unified_client_define_tests)
     foreach (fname ${bigquery_unified_client_unit_tests})
         google_cloud_cpp_add_executable(target "bigquery_unified" "${fname}")
         target_link_libraries(
-            ${target} PRIVATE google-cloud-cpp-bigquery::bigquery_unified
-                              GTest::gmock_main GTest::gmock GTest::gtest)
+            ${target}
+            PRIVATE google-cloud-cpp-bigquery::bigquery_unified
+                    google_cloud_cpp_bigquery_bigquery_unified_testing
+                    GTest::gmock_main GTest::gmock GTest::gtest)
         google_cloud_cpp_add_common_options(${target})
         add_test(NAME ${target} COMMAND ${target})
         add_dependencies(bigquery_unified-client-tests ${target})
