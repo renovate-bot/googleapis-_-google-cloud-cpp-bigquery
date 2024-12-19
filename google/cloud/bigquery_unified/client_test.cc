@@ -20,8 +20,10 @@ namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
-using ::google::cloud::bigquery_unified::testing_util::IsOk;
+using ::google::cloud::bigquery_unified::testing_util::IsOkAndHolds;
+using ::testing::AllOf;
 using ::testing::Eq;
+using ::testing::ResultOf;
 using ::testing::Return;
 
 struct TestOption {
@@ -29,12 +31,8 @@ struct TestOption {
 };
 
 TEST(BigQueryUnifiedClientTest, GetJobSuccess) {
-  auto mock_connection =
-      std::make_shared<google::cloud::bigquery_unified::MockConnection>();
+  auto mock_connection = std::make_shared<MockConnection>();
 
-  google::cloud::bigquery::v2::Job job;
-  job.mutable_job_reference()->set_project_id("my-project-id");
-  job.mutable_job_reference()->set_job_id("my-job-id");
   auto call_options = Options{}.set<TestOption>("call-test-option");
 
   EXPECT_CALL(*mock_connection, GetJob)
@@ -42,6 +40,9 @@ TEST(BigQueryUnifiedClientTest, GetJobSuccess) {
                     Options opts) {
         EXPECT_THAT(request.project_id(), Eq("my-project-id"));
         EXPECT_THAT(opts.get<TestOption>(), Eq(call_options.get<TestOption>()));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id("my-project-id");
+        job.mutable_job_reference()->set_job_id("my-job-id");
         return job;
       });
 
@@ -50,9 +51,17 @@ TEST(BigQueryUnifiedClientTest, GetJobSuccess) {
   google::cloud::bigquery::v2::GetJobRequest request;
   request.set_project_id("my-project-id");
   auto get_result = client.GetJob(request, call_options);
-  EXPECT_THAT(get_result, IsOk());
-  EXPECT_THAT(get_result->job_reference().project_id(), Eq("my-project-id"));
-  EXPECT_THAT(get_result->job_reference().job_id(), Eq("my-job-id"));
+  EXPECT_THAT(
+      get_result,
+      IsOkAndHolds(AllOf(
+          ResultOf(
+              "project id",
+              [](auto const& x) { return x.job_reference().project_id(); },
+              "my-project-id"),
+          ResultOf(
+              "job id",
+              [](auto const& x) { return x.job_reference().job_id(); },
+              "my-job-id"))));
 }
 
 }  // namespace
