@@ -15,13 +15,40 @@
 #include "google/cloud/bigquery_unified/client.h"
 #include "google/cloud/bigquery_unified/testing_util/status_matchers.h"
 #include "google/cloud/bigquery_unified/version.h"
+#include "google/cloud/internal/getenv.h"
 #include <gmock/gmock.h>
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
-TEST(JobIntegrationTest, Success) { EXPECT_TRUE(true); }
+using ::testing::Eq;
+
+class JobIntegrationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    project_id_ =
+        google::cloud::internal::GetEnv("GOOGLE_CLOUD_PROJECT").value_or("");
+    ASSERT_FALSE(project_id_.empty());
+  }
+  std::string project_id_;
+};
+
+TEST_F(JobIntegrationTest, GetJob) {
+  namespace bigquery_proto = google::cloud::bigquery::v2;
+  std::shared_ptr<Connection> connection =
+      google::cloud::bigquery_unified::MakeConnection();
+  auto client = google::cloud::bigquery_unified::Client(connection);
+
+  // TODO: hard coding this id is brittle but currently necessary.
+  std::string const job_id = "job_TyRhPS6z-5_e9JSwtT8ieuwDOdLD";
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id_);
+  get_request.set_job_id(job_id);
+  auto job = client.GetJob(get_request);
+  ASSERT_STATUS_OK(job);
+  EXPECT_THAT(job->status().state(), Eq("DONE"));
+}
 
 }  // namespace
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END

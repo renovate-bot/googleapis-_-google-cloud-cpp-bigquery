@@ -129,7 +129,15 @@ bigquery_unified_library(
 
 set(bigquery_unified_library_files
     # cmake-format: sort
-    client.cc client.h connection.cc connection.h read_arrow_response.h)
+    client.cc
+    client.h
+    connection.cc
+    connection.h
+    internal/connection_impl.cc
+    internal/connection_impl.h
+    internal/default_options.cc
+    internal/default_options.h
+    read_arrow_response.h)
 
 set(bigquery_unified_deps
     # cmake-format: sort

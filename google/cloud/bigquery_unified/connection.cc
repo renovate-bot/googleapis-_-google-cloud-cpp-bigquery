@@ -13,6 +13,8 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/connection.h"
+#include "google/cloud/bigquery_unified/internal/connection_impl.h"
+#include "google/cloud/bigquery_unified/internal/default_options.h"
 #include "google/cloud/internal/make_status.h"
 #include "google/cloud/internal/pagination_range.h"
 
@@ -98,7 +100,10 @@ StatusOr<ReadArrowResponse> Connection::ReadArrow(
   return internal::UnimplementedError("not implemented");
 }
 
-std::shared_ptr<Connection> MakeConnection(Options options) { return {}; }
+std::shared_ptr<Connection> MakeConnection(Options options) {
+  return bigquery_unified_internal::MakeDefaultConnectionImpl(
+      bigquery_unified_internal::DefaultOptions(std::move(options)));
+}
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
 }  // namespace google::cloud::bigquery_unified

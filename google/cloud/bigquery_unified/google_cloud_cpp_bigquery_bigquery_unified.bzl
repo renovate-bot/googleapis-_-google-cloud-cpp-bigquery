@@ -19,10 +19,14 @@
 google_cloud_cpp_bigquery_bigquery_unified_hdrs = [
     "client.h",
     "connection.h",
+    "internal/connection_impl.h",
+    "internal/default_options.h",
     "read_arrow_response.h",
 ]
 
 google_cloud_cpp_bigquery_bigquery_unified_srcs = [
     "client.cc",
     "connection.cc",
+    "internal/connection_impl.cc",
+    "internal/default_options.cc",
 ]
