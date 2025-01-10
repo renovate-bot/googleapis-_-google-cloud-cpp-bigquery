@@ -133,11 +133,15 @@ set(bigquery_unified_library_files
     client.h
     connection.cc
     connection.h
+    idempotency_policy.cc
+    idempotency_policy.h
     internal/connection_impl.cc
     internal/connection_impl.h
     internal/default_options.cc
     internal/default_options.h
-    read_arrow_response.h)
+    job_options.h
+    read_arrow_response.h
+    retry_policy.h)
 
 set(bigquery_unified_deps
     # cmake-format: sort
@@ -220,8 +224,9 @@ function (bigquery_unified_client_define_tests)
     # googletest itself), because the generic `FindGTest` module does not define
     # the GTest::gmock target, and the target names are also weird.
     find_package(GTest CONFIG REQUIRED)
-    set(bigquery_unified_client_unit_tests # cmake-format: sort
-                                           client_test.cc)
+    set(bigquery_unified_client_unit_tests
+        # cmake-format: sort
+        client_test.cc internal/default_options_test.cc)
 
     # Export the list of unit tests to a .bzl file so we do not need to maintain
     # the list in two places.
