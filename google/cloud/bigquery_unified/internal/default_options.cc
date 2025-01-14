@@ -13,11 +13,47 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/internal/default_options.h"
+#include "google/cloud/bigquery_unified/idempotency_policy.h"
+#include "google/cloud/bigquery_unified/job_options.h"
+#include "google/cloud/bigquery_unified/retry_policy.h"
+#include "google/cloud/backoff_policy.h"
+#include "google/cloud/polling_policy.h"
 
 namespace google::cloud::bigquery_unified_internal {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
+namespace {
+auto constexpr kBackoffScaling = 2.0;
+}  // namespace
+
 google::cloud::Options DefaultOptions(google::cloud::Options options) {
+  if (!options.has<bigquery_unified::RetryPolicyOption>()) {
+    options.set<bigquery_unified::RetryPolicyOption>(
+        bigquery_unified::LimitedTimeRetryPolicy(std::chrono::minutes(30))
+            .clone());
+  }
+  if (!options.has<bigquery_unified::BackoffPolicyOption>()) {
+    options.set<bigquery_unified::BackoffPolicyOption>(
+        ExponentialBackoffPolicy(
+            std::chrono::seconds(0), std::chrono::seconds(1),
+            std::chrono::minutes(5), kBackoffScaling, kBackoffScaling)
+            .clone());
+  }
+  if (!options.has<bigquery_unified::PollingPolicyOption>()) {
+    options.set<bigquery_unified::PollingPolicyOption>(
+        GenericPollingPolicy<bigquery_unified::RetryPolicyOption::Type,
+                             bigquery_unified::BackoffPolicyOption::Type>(
+            options.get<bigquery_unified::RetryPolicyOption>()->clone(),
+            ExponentialBackoffPolicy(std::chrono::seconds(1),
+                                     std::chrono::minutes(5), kBackoffScaling)
+                .clone())
+            .clone());
+  }
+  if (!options.has<bigquery_unified::IdempotencyPolicyOption>()) {
+    options.set<bigquery_unified::IdempotencyPolicyOption>(
+        bigquery_unified::MakeDefaultIdempotencyPolicy());
+  }
+
   return options;
 }
 

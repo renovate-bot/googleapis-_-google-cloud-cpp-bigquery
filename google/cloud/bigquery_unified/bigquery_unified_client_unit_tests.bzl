@@ -18,4 +18,5 @@
 
 bigquery_unified_client_unit_tests = [
     "client_test.cc",
+    "internal/default_options_test.cc",
 ]
