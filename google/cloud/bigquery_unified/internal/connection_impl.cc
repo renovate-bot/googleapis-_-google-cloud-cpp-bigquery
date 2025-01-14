@@ -13,25 +13,54 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/internal/connection_impl.h"
+#include "google/cloud/bigquery_unified/idempotency_policy.h"
+#include "google/cloud/bigquery_unified/internal/async_rest_long_running_operation_custom.h"
+#include "google/cloud/bigquery_unified/internal/default_options.h"
+#include "google/cloud/bigquery_unified/job_options.h"
+#include "google/cloud/bigquery_unified/retry_policy.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_option_defaults.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_rest_connection_impl.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_rest_stub_factory.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_tracing_connection.h"
 #include "google/cloud/background_threads.h"
 #include "google/cloud/internal/rest_background_threads_impl.h"
+#include "google/cloud/internal/rest_retry_loop.h"
 
 namespace google::cloud::bigquery_unified_internal {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
+namespace {
+
+std::unique_ptr<bigquery_unified::RetryPolicy> retry_policy(
+    Options const& options) {
+  return options.get<bigquery_unified::RetryPolicyOption>()->clone();
+}
+
+std::unique_ptr<BackoffPolicy> backoff_policy(Options const& options) {
+  return options.get<bigquery_unified::BackoffPolicyOption>()->clone();
+}
+
+std::unique_ptr<bigquery_unified::IdempotencyPolicy> idempotency_policy(
+    Options const& options) {
+  return options.get<bigquery_unified::IdempotencyPolicyOption>()->clone();
+}
+
+std::unique_ptr<PollingPolicy> polling_policy(Options const& options) {
+  return options.get<bigquery_unified::PollingPolicyOption>()->clone();
+}
+
+}  // namespace
 
 ConnectionImpl::ConnectionImpl(
     std::shared_ptr<google::cloud::bigquerycontrol_v2::JobServiceConnection>
         job_connection,
     google::cloud::Options job_options,
     std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub,
+    std::unique_ptr<google::cloud::BackgroundThreads> background,
     google::cloud::Options options)
     : job_connection_(std::move(job_connection)),
       job_stub_(std::move(job_stub)),
       job_options_(std::move(job_options)),
+      background_(std::move(background)),
       options_(std::move(options)) {}
 
 StatusOr<google::cloud::bigquery::v2::Job> ConnectionImpl::GetJob(
@@ -43,10 +72,97 @@ StatusOr<google::cloud::bigquery::v2::Job> ConnectionImpl::GetJob(
   return job_connection_->GetJob(request);
 }
 
+future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
+    google::cloud::bigquery::v2::Job const& job, Options opts) {
+  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
+  // supports it.
+  internal::OptionsSpan span(internal::MergeOptions(
+      std::move(opts), internal::MergeOptions(options_, job_options_)));
+  auto current_options = google::cloud::internal::SaveCurrentOptions();
+  google::cloud::bigquery::v2::InsertJobRequest insert_request;
+  auto const billing_project =
+      current_options->has<bigquery_unified::BillingProjectOption>()
+          ? current_options->get<bigquery_unified::BillingProjectOption>()
+          : "";
+
+  insert_request.set_project_id(billing_project);
+  *insert_request.mutable_job() = job;
+  auto idempotency = idempotency_policy(*current_options)
+                         ->InsertJob(insert_request, *current_options);
+  auto insert_response = rest_internal::RestRetryLoop(
+      retry_policy(*current_options), backoff_policy(*current_options),
+      std::move(idempotency),
+      [stub = job_stub_](
+          rest_internal::RestContext& context, google::cloud::Options options,
+          google::cloud::bigquery::v2::InsertJobRequest const& request)
+          -> StatusOr<google::cloud::bigquery::v2::Job> {
+        return stub->InsertJob(context, options, request);
+      },
+      *current_options, insert_request, __func__);
+
+  return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
+      google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
+      google::cloud::bigquery::v2::GetJobRequest,
+      google::cloud::bigquery::v2::CancelJobRequest>(
+      background_->cq(), current_options, *insert_response,
+      [stub = job_stub_](
+          CompletionQueue& cq,
+          std::unique_ptr<rest_internal::RestContext> context,
+          google::cloud::internal::ImmutableOptions options,
+          google::cloud::bigquery::v2::GetJobRequest const& request)
+          -> future<StatusOr<google::cloud::bigquery::v2::Job>> {
+        return make_ready_future(
+            stub->GetJob(*std::move(context), *std::move(options), request));
+      },
+      [stub = job_stub_](
+          CompletionQueue& cq,
+          std::unique_ptr<rest_internal::RestContext> context,
+          google::cloud::internal::ImmutableOptions options,
+          google::cloud::bigquery::v2::CancelJobRequest const& request)
+          -> future<Status> {
+        auto cancel_response =
+            stub->CancelJob(*std::move(context), *std::move(options), request);
+        if (!cancel_response) {
+          return make_ready_future(std::move(cancel_response).status());
+        }
+        return make_ready_future(Status{});
+      },
+      [](StatusOr<google::cloud::bigquery::v2::Job> op, std::string const&) {
+        return op;
+      },
+      polling_policy(*current_options), __func__,
+      [](google::cloud::bigquery::v2::Job const& op) {
+        //        std::cout << __func__ << ": op.status().state()=" <<
+        //        op.status().state()
+        //                  << "\n";
+        return op.status().state() == "DONE";
+      },
+      [ref = insert_response->job_reference()](
+          std::string const&, google::cloud::bigquery::v2::GetJobRequest& r) {
+        r.set_project_id(ref.project_id());
+        r.set_job_id(ref.job_id());
+        r.set_location(ref.location().value());
+      },
+      [ref = insert_response->job_reference()](
+          std::string const&,
+          google::cloud::bigquery::v2::CancelJobRequest& r) {
+        r.set_project_id(ref.project_id());
+        r.set_job_id(ref.job_id());
+        r.set_location(ref.location().value());
+      },
+      [](StatusOr<google::cloud::bigquery::v2::Job> const&) {
+        return std::string{"InsertJob"};
+      });
+}
+
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
     Options options) {
+  auto background = std::make_unique<
+      rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
   auto job_options =
       bigquerycontrol_v2_internal::JobServiceDefaultOptions(options);
+  // TODO: JobServiceRestConnectionImpl requires background threads, but does it
+  // actually use them? Needs further investigation.
   auto job_background = std::make_unique<
       rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
   auto job_stub =
@@ -62,7 +178,7 @@ std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
   //  operations.
   return std::make_shared<bigquery_unified_internal::ConnectionImpl>(
       std::move(job_connection), std::move(job_options), std::move(job_stub),
-      std::move(options));
+      std::move(background), std::move(options));
 }
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END

@@ -92,14 +92,14 @@ class Client {
       google::cloud::bigquery::v2::JobReference const& job_reference,
       Options opts = {});
 
+  // DeleteJob
+  Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
+                   Options opts = {});
+
   // GetJob
   StatusOr<google::cloud::bigquery::v2::Job> GetJob(
       google::cloud::bigquery::v2::GetJobRequest const& request,
       Options opts = {});
-
-  // DeleteJob
-  Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
-                   Options opts = {});
 
   // ListJobs
   StreamRange<google::cloud::bigquery::v2::ListFormatJob> ListJobs(
@@ -107,12 +107,10 @@ class Client {
 
   // InsertJob
   future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
-      google::cloud::bigquery::v2::InsertJobRequest const& request,
-      Options opts = {});
+      google::cloud::bigquery::v2::Job const& job, Options opts = {});
 
   StatusOr<google::cloud::bigquery::v2::JobReference> InsertJob(
-      google::cloud::NoAwaitTag,
-      google::cloud::bigquery::v2::InsertJobRequest const& request,
+      google::cloud::NoAwaitTag, google::cloud::bigquery::v2::Job const& job,
       Options opts = {});
 
   future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(

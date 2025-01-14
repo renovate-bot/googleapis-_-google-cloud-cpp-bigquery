@@ -135,6 +135,7 @@ set(bigquery_unified_library_files
     connection.h
     idempotency_policy.cc
     idempotency_policy.h
+    internal/async_rest_long_running_operation_custom.h
     internal/connection_impl.cc
     internal/connection_impl.h
     internal/default_options.cc

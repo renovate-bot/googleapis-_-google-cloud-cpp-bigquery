@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/client.h"
+#include "google/cloud/bigquery_unified/job_options.h"
 #include "google/cloud/bigquery_unified/testing_util/status_matchers.h"
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/internal/getenv.h"
@@ -22,6 +23,7 @@ namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
+using ::google::cloud::bigquery_unified::testing_util::IsOk;
 using ::testing::Eq;
 
 class JobIntegrationTest : public ::testing::Test {
@@ -33,6 +35,35 @@ class JobIntegrationTest : public ::testing::Test {
   }
   std::string project_id_;
 };
+
+TEST_F(JobIntegrationTest, InsertJob) {
+  namespace bigquery_proto = google::cloud::bigquery::v2;
+
+  bigquery_proto::JobConfigurationQuery query;
+  query.mutable_use_legacy_sql()->set_value(false);
+  query.set_query(
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 2000 "
+      "GROUP BY name, state, year "
+      "LIMIT 100");
+
+  bigquery_proto::JobConfiguration config;
+  *config.mutable_query() = query;
+  config.mutable_labels()->insert({"test_suite", "job_integration_test"});
+  config.mutable_labels()->insert({"test_case", "insert_job"});
+
+  bigquery_proto::Job query_job_request;
+  *query_job_request.mutable_configuration() = config;
+  std::shared_ptr<Connection> connection =
+      google::cloud::bigquery_unified::MakeConnection();
+  auto client = google::cloud::bigquery_unified::Client(connection);
+
+  auto options =
+      google::cloud::Options{}.set<BillingProjectOption>(project_id_);
+  auto query_job = client.InsertJob(query_job_request, options).get();
+  EXPECT_THAT(query_job, IsOk());
+}
 
 TEST_F(JobIntegrationTest, GetJob) {
   namespace bigquery_proto = google::cloud::bigquery::v2;

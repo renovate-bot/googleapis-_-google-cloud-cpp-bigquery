@@ -73,14 +73,12 @@ class MockConnection : public Connection {
 
   // InsertJob
   MOCK_METHOD(future<StatusOr<google::cloud::bigquery::v2::Job>>, InsertJob,
-              (google::cloud::bigquery::v2::InsertJobRequest const& request,
-               Options opts),
+              (google::cloud::bigquery::v2::Job const& job, Options opts),
               (override));
 
   MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::JobReference>, InsertJob,
               (google::cloud::NoAwaitTag,
-               google::cloud::bigquery::v2::InsertJobRequest const& request,
-               Options opts),
+               google::cloud::bigquery::v2::Job const& job, Options opts),
               (override));
 
   MOCK_METHOD(future<StatusOr<google::cloud::bigquery::v2::Job>>, InsertJob,

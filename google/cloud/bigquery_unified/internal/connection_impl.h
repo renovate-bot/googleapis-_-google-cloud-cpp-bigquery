@@ -19,6 +19,7 @@
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_rest_stub.h"
 #include "google/cloud/bigquerycontrol/v2/job_connection.h"
+#include "google/cloud/background_threads.h"
 
 namespace google::cloud::bigquery_unified_internal {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
@@ -30,6 +31,7 @@ class ConnectionImpl : public bigquery_unified::Connection {
           job_connection,
       google::cloud::Options job_options,
       std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub,
+      std::unique_ptr<google::cloud::BackgroundThreads> background,
       google::cloud::Options options);
 
   ~ConnectionImpl() override = default;
@@ -40,10 +42,14 @@ class ConnectionImpl : public bigquery_unified::Connection {
       google::cloud::bigquery::v2::GetJobRequest const& request,
       Options opts) override;
 
+  future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
+      google::cloud::bigquery::v2::Job const& job, Options opts) override;
+
  private:
   std::shared_ptr<bigquerycontrol_v2::JobServiceConnection> job_connection_;
   std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub_;
   Options job_options_;
+  std::unique_ptr<google::cloud::BackgroundThreads> background_;
   Options options_;
 };
 
