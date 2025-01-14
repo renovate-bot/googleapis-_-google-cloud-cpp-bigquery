@@ -72,7 +72,7 @@ TEST_F(JobIntegrationTest, GetJob) {
   auto client = google::cloud::bigquery_unified::Client(connection);
 
   // TODO: hard coding this id is brittle but currently necessary.
-  std::string const job_id = "job_TyRhPS6z-5_e9JSwtT8ieuwDOdLD";
+  std::string const job_id = "job_XORZAqWx6R3xcDQCL9K_-2peocI7";
   bigquery_proto::GetJobRequest get_request;
   get_request.set_project_id(project_id_);
   get_request.set_job_id(job_id);
