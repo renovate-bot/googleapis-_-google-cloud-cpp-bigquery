@@ -132,9 +132,6 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
       },
       polling_policy(*current_options), __func__,
       [](google::cloud::bigquery::v2::Job const& op) {
-        //        std::cout << __func__ << ": op.status().state()=" <<
-        //        op.status().state()
-        //                  << "\n";
         return op.status().state() == "DONE";
       },
       [ref = insert_response->job_reference()](
