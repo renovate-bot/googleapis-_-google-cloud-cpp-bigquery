@@ -77,12 +77,10 @@ class Connection {
 
   // InsertJob
   virtual future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
-      google::cloud::bigquery::v2::InsertJobRequest const& request,
-      Options opts);
+      google::cloud::bigquery::v2::Job const& job, Options opts);
 
   virtual StatusOr<google::cloud::bigquery::v2::JobReference> InsertJob(
-      google::cloud::NoAwaitTag,
-      google::cloud::bigquery::v2::InsertJobRequest const& request,
+      google::cloud::NoAwaitTag, google::cloud::bigquery::v2::Job const& job,
       Options opts);
 
   virtual future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(

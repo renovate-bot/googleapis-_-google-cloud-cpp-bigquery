@@ -68,15 +68,13 @@ StreamRange<google::cloud::bigquery::v2::ListFormatJob> Client::ListJobs(
 }
 
 future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
-    google::cloud::bigquery::v2::InsertJobRequest const& request,
-    Options opts) {
-  return make_ready_future<StatusOr<google::cloud::bigquery::v2::Job>>(
-      internal::UnimplementedError("not implemented"));
+    google::cloud::bigquery::v2::Job const& job, Options opts) {
+  return connection_->InsertJob(
+      job, internal::MergeOptions(std::move(opts), options_));
 }
 
 StatusOr<google::cloud::bigquery::v2::JobReference> Client::InsertJob(
-    google::cloud::NoAwaitTag,
-    google::cloud::bigquery::v2::InsertJobRequest const& request,
+    google::cloud::NoAwaitTag, google::cloud::bigquery::v2::Job const& job,
     Options opts) {
   return internal::UnimplementedError("not implemented");
 }

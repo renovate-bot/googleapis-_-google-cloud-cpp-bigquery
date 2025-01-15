@@ -20,6 +20,7 @@ google_cloud_cpp_bigquery_bigquery_unified_hdrs = [
     "client.h",
     "connection.h",
     "idempotency_policy.h",
+    "internal/async_rest_long_running_operation_custom.h",
     "internal/connection_impl.h",
     "internal/default_options.h",
     "job_options.h",

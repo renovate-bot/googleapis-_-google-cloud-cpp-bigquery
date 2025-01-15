@@ -67,15 +67,20 @@ RUN curl -fsSL https://distfiles.ariadne.space/pkgconf/pkgconf-2.2.0.tar.gz | \
 # set the search path.
 ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig
 
+# In order to work around https://github.com/llvm/llvm-project/issues/102443 we set
+# these compiler env vars so that all our dependencies are built the same way.
+ENV CC="clang"
+ENV CXX="clang++"
+ENV CXXFLAGS="-fclang-abi-compat=17"
+
 # We disable the inline namespace because otherwise Abseil LTS updates break our
 # `check-api` build.
 WORKDIR /var/tmp/build
 RUN curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
-    sed -i 's/^#define ABSL_OPTION_USE_\(.*\) 2/#define ABSL_OPTION_USE_\1 0/' "absl/base/options.h" && \
-    sed -i 's/^#define ABSL_OPTION_USE_INLINE_NAMESPACE 1$/#define ABSL_OPTION_USE_INLINE_NAMESPACE 0/' "absl/base/options.h" && \
     cmake \
       -DCMAKE_BUILD_TYPE="Release" \
+      -DCMAKE_CXX_STANDARD=17 \
       -DABSL_BUILD_TESTING=OFF \
       -DBUILD_SHARED_LIBS=yes \
       -GNinja -S . -B cmake-out && \
@@ -129,10 +134,11 @@ RUN curl -fsSL https://github.com/nlohmann/json/archive/v3.11.3.tar.gz | \
     ldconfig && cd /var/tmp && rm -fr build
 
 WORKDIR /var/tmp/build/protobuf
-RUN curl -fsSL https://github.com/protocolbuffers/protobuf/archive/v29.0.tar.gz | \
+RUN curl -fsSL https://github.com/protocolbuffers/protobuf/archive/v29.3.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
         -DBUILD_SHARED_LIBS=yes \
         -Dprotobuf_BUILD_TESTS=OFF \
         -Dprotobuf_ABSL_PROVIDER=package \
@@ -144,7 +150,7 @@ WORKDIR /var/tmp/build/
 RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
-        -DCMAKE_CXX_STANDARD=14 \
+        -DCMAKE_CXX_STANDARD=17 \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_POSITION_INDEPENDENT_CODE=TRUE \
         -DBUILD_SHARED_LIBS=ON \
@@ -159,10 +165,11 @@ RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18
 
 WORKDIR /var/tmp/build/grpc
 RUN dnf makecache && dnf install -y c-ares-devel re2-devel
-RUN curl -fsSL https://github.com/grpc/grpc/archive/v1.67.0.tar.gz | \
+RUN curl -fsSL https://github.com/grpc/grpc/archive/v1.69.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_STANDARD=17 \
       -DBUILD_SHARED_LIBS=ON \
       -DgRPC_INSTALL=ON \
       -DgRPC_BUILD_TESTS=OFF \
@@ -184,10 +191,12 @@ RUN curl -fsSL https://github.com/grpc/grpc/archive/v1.67.0.tar.gz | \
 # files.
 ENV LD_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64:${LD_LIBRARY_PATH}
 WORKDIR /var/tmp/build/google-cloud-cpp
-RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.31.0.tar.gz | \
+RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.33.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+        -DGOOGLE_CLOUD_CPP_ENABLE_CLANG_ABI_COMPAT_17=ON \
         -DBUILD_SHARED_LIBS=yes \
         -DGOOGLE_CLOUD_CPP_ENABLE="bigquerycontrol,bigquery" \
       -GNinja -S . -B cmake-out && \
@@ -198,6 +207,7 @@ WORKDIR /var/tmp/build/arrow
 RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
+      -DCMAKE_CXX_STANDARD=17 \
       -GNinja -S cpp -B cmake-out \
       --preset ninja-release-minimal \
       -DARROW_BUILD_STATIC=ON  && \
