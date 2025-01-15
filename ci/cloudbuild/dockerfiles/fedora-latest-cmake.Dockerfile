@@ -67,6 +67,12 @@ RUN curl -fsSL https://distfiles.ariadne.space/pkgconf/pkgconf-2.2.0.tar.gz | \
 # set the search path.
 ENV PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig:/usr/local/lib/pkgconfig:/usr/lib64/pkgconfig
 
+# In order to work around https://github.com/llvm/llvm-project/issues/102443 we set
+# these compiler env vars so that all our dependencies are built the same way.
+ENV CC="clang"
+ENV CXX="clang++"
+ENV CXXFLAGS="-fclang-abi-compat=17"
+
 # We disable the inline namespace because otherwise Abseil LTS updates break our
 # `check-api` build.
 WORKDIR /var/tmp/build
@@ -190,6 +196,7 @@ RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.33.0.ta
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
         -DCMAKE_CXX_STANDARD=17 \
+        -DGOOGLE_CLOUD_CPP_ENABLE_CLANG_ABI_COMPAT_17=ON \
         -DBUILD_SHARED_LIBS=yes \
         -DGOOGLE_CLOUD_CPP_ENABLE="bigquerycontrol,bigquery" \
       -GNinja -S . -B cmake-out && \
