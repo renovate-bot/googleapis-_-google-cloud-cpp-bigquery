@@ -66,7 +66,7 @@ TEST_F(JobIntegrationTest, JobOperations) {
   auto options =
       google::cloud::Options{}.set<BillingProjectOption>(project_id_);
   auto query_job = client.InsertJob(query_job_request, options).get();
-  EXPECT_THAT(query_job, IsOk());
+  ASSERT_STATUS_OK(query_job);
 
   // query_job->id() is in the format of [project id]:US.[job id]
   std::vector<std::string> v =
@@ -80,7 +80,7 @@ TEST_F(JobIntegrationTest, JobOperations) {
   get_request.set_project_id(project_id_);
   get_request.set_job_id(job_id);
   auto get_job = client.GetJob(get_request);
-  ASSERT_STATUS_OK(get_job);
+  EXPECT_THAT(get_job, IsOk());
   EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
   // delete the inserted job
