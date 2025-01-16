@@ -159,19 +159,7 @@ Status ConnectionImpl::DeleteJob(
   // supports it.
   internal::OptionsSpan span(internal::MergeOptions(
       std::move(opts), internal::MergeOptions(options_, job_options_)));
-  auto current_options = google::cloud::internal::SaveCurrentOptions();
-  auto idempotency = idempotency_policy(*current_options)
-                         ->DeleteJob(request, *current_options);
-  return rest_internal::RestRetryLoop(
-      retry_policy(*current_options), backoff_policy(*current_options),
-      std::move(idempotency),
-      [stub = job_stub_](
-          rest_internal::RestContext& rest_context, Options const& options,
-          google::cloud::bigquery::v2::DeleteJobRequest const& request) {
-        return stub->DeleteJob(rest_context, options, request);
-        ;
-      },
-      *current_options, request, __func__);
+  return job_connection_->DeleteJob(request);
 }
 
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(

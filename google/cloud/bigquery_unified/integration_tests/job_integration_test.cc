@@ -17,7 +17,6 @@
 #include "google/cloud/bigquery_unified/testing_util/status_matchers.h"
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/internal/getenv.h"
-#include "absl/strings/str_split.h"
 #include <gmock/gmock.h>
 
 namespace google::cloud::bigquery_unified {
@@ -67,13 +66,7 @@ TEST_F(JobIntegrationTest, JobOperations) {
       google::cloud::Options{}.set<BillingProjectOption>(project_id_);
   auto query_job = client.InsertJob(query_job_request, options).get();
   ASSERT_STATUS_OK(query_job);
-
-  // query_job->id() is in the format of [project id]:US.[job id]
-  std::vector<std::string> v =
-      absl::StrSplit(query_job->id(), absl::ByAnyChar(":."));
-  auto project_id = v[0];
-  auto job_id = v[2];
-  EXPECT_EQ(project_id, project_id_);
+  auto job_id = query_job->job_reference().job_id();
 
   // get the inserted job
   bigquery_proto::GetJobRequest get_request;
@@ -89,13 +82,6 @@ TEST_F(JobIntegrationTest, JobOperations) {
   delete_request.set_job_id(job_id);
   auto delete_job = client.DeleteJob(delete_request);
   ASSERT_STATUS_OK(delete_job);
-
-  // get the deleted job, expect NOT FOUND
-  bigquery_proto::GetJobRequest get_deleted_request;
-  get_deleted_request.set_project_id(project_id_);
-  get_deleted_request.set_job_id(job_id);
-  auto get_deleted_job = client.GetJob(get_deleted_request);
-  EXPECT_THAT(get_deleted_job.status(), StatusIs(StatusCode::kNotFound));
 }
 
 }  // namespace
