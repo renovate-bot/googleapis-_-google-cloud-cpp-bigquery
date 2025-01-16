@@ -162,6 +162,16 @@ Status ConnectionImpl::DeleteJob(
   return job_connection_->DeleteJob(request);
 }
 
+StreamRange<google::cloud::bigquery::v2::ListFormatJob>
+ConnectionImpl::ListJobs(google::cloud::bigquery::v2::ListJobsRequest request,
+                         Options opts) {
+  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
+  // supports it.
+  internal::OptionsSpan span(internal::MergeOptions(
+      std::move(opts), internal::MergeOptions(options_, job_options_)));
+  return job_connection_->ListJobs(request);
+}
+
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
     Options options) {
   auto background = std::make_unique<

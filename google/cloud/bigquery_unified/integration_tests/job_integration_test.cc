@@ -74,6 +74,18 @@ TEST_F(JobIntegrationTest, JobOperations) {
   EXPECT_THAT(get_job, IsOk());
   EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
+  bigquery_proto::ListJobsRequest list_request;
+  list_request.set_project_id(project_id_);
+  auto list_jobs = client.ListJobs(list_request);
+  int count = 0;
+  for (auto const& job : list_jobs) {
+    EXPECT_THAT(job, IsOk());
+    if (job->job_reference().job_id() == job_id) {
+      count++;
+    }
+  }
+  EXPECT_THAT(count, 1);
+
   // delete the inserted job
   bigquery_proto::DeleteJobRequest delete_request;
   delete_request.set_project_id(project_id_);
