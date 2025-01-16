@@ -23,9 +23,7 @@ namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
-using ::google::cloud::StatusCode;
 using ::google::cloud::bigquery_unified::testing_util::IsOk;
-using ::google::cloud::bigquery_unified::testing_util::StatusIs;
 using ::testing::Eq;
 
 class JobIntegrationTest : public ::testing::Test {
