@@ -77,7 +77,9 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
 StatusOr<google::cloud::bigquery::v2::JobReference> Client::InsertJob(
     google::cloud::NoAwaitTag, google::cloud::bigquery::v2::Job const& job,
     Options opts) {
-  return internal::UnimplementedError("not implemented");
+  return connection_->InsertJob(
+      google::cloud::NoAwaitTag{}, job,
+      internal::MergeOptions(std::move(opts), options_));
 }
 
 future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(

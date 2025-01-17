@@ -152,6 +152,29 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
       });
 }
 
+StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::InsertJob(
+    google::cloud::NoAwaitTag, google::cloud::bigquery::v2::Job const& job,
+    Options opts) {
+  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
+  // supports it.
+  internal::OptionsSpan span(internal::MergeOptions(
+      std::move(opts), internal::MergeOptions(options_, job_options_)));
+  auto current_options = google::cloud::internal::SaveCurrentOptions();
+  google::cloud::bigquery::v2::InsertJobRequest insert_request;
+  auto const billing_project =
+      current_options->has<bigquery_unified::BillingProjectOption>()
+          ? current_options->get<bigquery_unified::BillingProjectOption>()
+          : "";
+
+  insert_request.set_project_id(billing_project);
+  *insert_request.mutable_job() = job;
+  auto insert_response = job_connection_->InsertJob(insert_request);
+  if (!insert_response) {
+    return insert_response.status();
+  }
+  return insert_response->job_reference();
+}
+
 Status ConnectionImpl::DeleteJob(
     google::cloud::bigquery::v2::DeleteJobRequest const& request,
     Options opts) {

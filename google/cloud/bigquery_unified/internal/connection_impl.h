@@ -45,6 +45,10 @@ class ConnectionImpl : public bigquery_unified::Connection {
   future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
       google::cloud::bigquery::v2::Job const& job, Options opts) override;
 
+  StatusOr<google::cloud::bigquery::v2::JobReference> InsertJob(
+      google::cloud::NoAwaitTag, google::cloud::bigquery::v2::Job const& job,
+      Options opts) override;
+
   Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
                    Options opts) override;
 

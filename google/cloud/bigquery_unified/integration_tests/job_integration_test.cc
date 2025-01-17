@@ -18,13 +18,16 @@
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/internal/getenv.h"
 #include <gmock/gmock.h>
+#include <thread>
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
+using ::google::cloud::bigquery_unified::Client;
 using ::google::cloud::bigquery_unified::testing_util::IsOk;
 using ::testing::Eq;
+namespace bigquery_proto = google::cloud::bigquery::v2;
 
 class JobIntegrationTest : public ::testing::Test {
  protected:
@@ -36,10 +39,26 @@ class JobIntegrationTest : public ::testing::Test {
   std::string project_id_;
 };
 
-TEST_F(JobIntegrationTest, JobOperations) {
-  namespace bigquery_proto = google::cloud::bigquery::v2;
+void verify_get_job(std::string const& project_id, std::string const& job_id,
+                    Client& client) {
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id);
+  get_request.set_job_id(job_id);
+  auto get_job = client.GetJob(get_request);
+  EXPECT_THAT(get_job, IsOk());
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
+}
 
-  // insert a new job by making the query
+void delete_job(std::string const& project_id, std::string const& job_id,
+                Client& client) {
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  ASSERT_STATUS_OK(delete_job);
+}
+
+bigquery_proto::Job make_job_to_insert() {
   bigquery_proto::JobConfigurationQuery query;
   query.mutable_use_legacy_sql()->set_value(false);
   query.set_query(
@@ -54,25 +73,26 @@ TEST_F(JobIntegrationTest, JobOperations) {
   config.mutable_labels()->insert({"test_suite", "job_integration_test"});
   config.mutable_labels()->insert({"test_case", "insert_job"});
 
-  bigquery_proto::Job query_job_request;
-  *query_job_request.mutable_configuration() = config;
+  bigquery_proto::Job job;
+  *job.mutable_configuration() = config;
+  return job;
+}
+
+TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
   std::shared_ptr<Connection> connection =
       google::cloud::bigquery_unified::MakeConnection();
   auto client = google::cloud::bigquery_unified::Client(connection);
 
+  // insert a new job by making the query
+  auto job = make_job_to_insert();
   auto options =
       google::cloud::Options{}.set<BillingProjectOption>(project_id_);
-  auto query_job = client.InsertJob(query_job_request, options).get();
+  auto query_job = client.InsertJob(job, options).get();
   ASSERT_STATUS_OK(query_job);
   auto job_id = query_job->job_reference().job_id();
 
   // get the inserted job
-  bigquery_proto::GetJobRequest get_request;
-  get_request.set_project_id(project_id_);
-  get_request.set_job_id(job_id);
-  auto get_job = client.GetJob(get_request);
-  EXPECT_THAT(get_job, IsOk());
-  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
+  verify_get_job(project_id_, job_id, client);
 
   // list all jobs of the project, find the inserted job
   bigquery_proto::ListJobsRequest list_request;
@@ -89,11 +109,30 @@ TEST_F(JobIntegrationTest, JobOperations) {
   EXPECT_TRUE(find_job);
 
   // delete the inserted job
-  bigquery_proto::DeleteJobRequest delete_request;
-  delete_request.set_project_id(project_id_);
-  delete_request.set_job_id(job_id);
-  auto delete_job = client.DeleteJob(delete_request);
-  ASSERT_STATUS_OK(delete_job);
+  delete_job(project_id_, job_id, client);
+}
+
+TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
+  std::shared_ptr<Connection> connection =
+      google::cloud::bigquery_unified::MakeConnection();
+  auto client = google::cloud::bigquery_unified::Client(connection);
+
+  // insert a new job by making the query
+  auto job = make_job_to_insert();
+  auto options =
+      google::cloud::Options{}.set<BillingProjectOption>(project_id_);
+
+  auto job_ref = client.InsertJob(google::cloud::NoAwaitTag{}, job, options);
+  ASSERT_STATUS_OK(job_ref);
+  auto job_id = job_ref->job_id();
+
+  std::this_thread::sleep_for(std::chrono::seconds(2));
+
+  // get the inserted job
+  verify_get_job(project_id_, job_id, client);
+
+  // delete the inserted job
+  delete_job(project_id_, job_id, client);
 }
 
 }  // namespace
