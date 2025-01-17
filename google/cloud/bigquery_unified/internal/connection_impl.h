@@ -48,6 +48,10 @@ class ConnectionImpl : public bigquery_unified::Connection {
   Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
                    Options opts) override;
 
+  StreamRange<google::cloud::bigquery::v2::ListFormatJob> ListJobs(
+      google::cloud::bigquery::v2::ListJobsRequest request,
+      Options opts) override;
+
  private:
   std::shared_ptr<bigquerycontrol_v2::JobServiceConnection> job_connection_;
   std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub_;

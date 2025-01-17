@@ -64,8 +64,8 @@ Status Client::DeleteJob(
 
 StreamRange<google::cloud::bigquery::v2::ListFormatJob> Client::ListJobs(
     google::cloud::bigquery::v2::ListJobsRequest request, Options opts) {
-  return internal::MakeUnimplementedPaginationRange<
-      StreamRange<google::cloud::bigquery::v2::ListFormatJob>>();
+  return connection_->ListJobs(
+      std::move(request), internal::MergeOptions(std::move(opts), options_));
 }
 
 future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
