@@ -74,6 +74,7 @@ TEST_F(JobIntegrationTest, JobOperations) {
   EXPECT_THAT(get_job, IsOk());
   EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
+  // list all jobs of the project, find the inserted job
   bigquery_proto::ListJobsRequest list_request;
   list_request.set_project_id(project_id_);
   auto list_jobs = client.ListJobs(list_request);
