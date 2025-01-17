@@ -84,7 +84,7 @@ TEST_F(JobIntegrationTest, JobOperations) {
       count++;
     }
   }
-  EXPECT_THAT(count, 1);
+  EXPECT_EQ(count, 1);
 
   // delete the inserted job
   bigquery_proto::DeleteJobRequest delete_request;
