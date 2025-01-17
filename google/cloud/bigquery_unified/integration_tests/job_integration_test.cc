@@ -24,7 +24,6 @@ namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
-using ::google::cloud::bigquery_unified::Client;
 using ::google::cloud::bigquery_unified::testing_util::IsOk;
 using ::testing::Eq;
 namespace bigquery_proto = google::cloud::bigquery::v2;
@@ -32,8 +31,7 @@ namespace bigquery_proto = google::cloud::bigquery::v2;
 class JobIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    project_id_ =
-        google::cloud::internal::GetEnv("GOOGLE_CLOUD_PROJECT").value_or("");
+    project_id_ = internal::GetEnv("GOOGLE_CLOUD_PROJECT").value_or("");
     ASSERT_FALSE(project_id_.empty());
   }
   std::string project_id_;
@@ -79,14 +77,12 @@ bigquery_proto::Job make_job_to_insert() {
 }
 
 TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
-  std::shared_ptr<Connection> connection =
-      google::cloud::bigquery_unified::MakeConnection();
-  auto client = google::cloud::bigquery_unified::Client(connection);
+  std::shared_ptr<Connection> connection = MakeConnection();
+  auto client = Client(connection);
 
   // insert a new job by making the query
   auto job = make_job_to_insert();
-  auto options =
-      google::cloud::Options{}.set<BillingProjectOption>(project_id_);
+  auto options = Options{}.set<BillingProjectOption>(project_id_);
   auto query_job = client.InsertJob(job, options).get();
   ASSERT_STATUS_OK(query_job);
   auto job_id = query_job->job_reference().job_id();
@@ -113,16 +109,14 @@ TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
 }
 
 TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
-  std::shared_ptr<Connection> connection =
-      google::cloud::bigquery_unified::MakeConnection();
-  auto client = google::cloud::bigquery_unified::Client(connection);
+  std::shared_ptr<Connection> connection = MakeConnection();
+  auto client = Client(connection);
 
   // insert a new job by making the query
   auto job = make_job_to_insert();
-  auto options =
-      google::cloud::Options{}.set<BillingProjectOption>(project_id_);
+  auto options = Options{}.set<BillingProjectOption>(project_id_);
 
-  auto job_ref = client.InsertJob(google::cloud::NoAwaitTag{}, job, options);
+  auto job_ref = client.InsertJob(NoAwaitTag{}, job, options);
   ASSERT_STATUS_OK(job_ref);
   auto job_id = job_ref->job_id();
 
