@@ -36,9 +36,10 @@ class JobIntegrationTest : public ::testing::Test {
   std::string project_id_;
 };
 
-TEST_F(JobIntegrationTest, InsertJob) {
+TEST_F(JobIntegrationTest, JobOperations) {
   namespace bigquery_proto = google::cloud::bigquery::v2;
 
+  // insert a new job by making the query
   bigquery_proto::JobConfigurationQuery query;
   query.mutable_use_legacy_sql()->set_value(false);
   query.set_query(
@@ -62,23 +63,23 @@ TEST_F(JobIntegrationTest, InsertJob) {
   auto options =
       google::cloud::Options{}.set<BillingProjectOption>(project_id_);
   auto query_job = client.InsertJob(query_job_request, options).get();
-  EXPECT_THAT(query_job, IsOk());
-}
+  ASSERT_STATUS_OK(query_job);
+  auto job_id = query_job->job_reference().job_id();
 
-TEST_F(JobIntegrationTest, GetJob) {
-  namespace bigquery_proto = google::cloud::bigquery::v2;
-  std::shared_ptr<Connection> connection =
-      google::cloud::bigquery_unified::MakeConnection();
-  auto client = google::cloud::bigquery_unified::Client(connection);
-
-  // TODO: hard coding this id is brittle but currently necessary.
-  std::string const job_id = "job_XORZAqWx6R3xcDQCL9K_-2peocI7";
+  // get the inserted job
   bigquery_proto::GetJobRequest get_request;
   get_request.set_project_id(project_id_);
   get_request.set_job_id(job_id);
-  auto job = client.GetJob(get_request);
-  ASSERT_STATUS_OK(job);
-  EXPECT_THAT(job->status().state(), Eq("DONE"));
+  auto get_job = client.GetJob(get_request);
+  EXPECT_THAT(get_job, IsOk());
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
+
+  // delete the inserted job
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id_);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  ASSERT_STATUS_OK(delete_job);
 }
 
 }  // namespace
