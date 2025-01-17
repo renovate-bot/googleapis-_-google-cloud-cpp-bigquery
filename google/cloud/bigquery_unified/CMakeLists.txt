@@ -227,7 +227,8 @@ function (bigquery_unified_client_define_tests)
     find_package(GTest CONFIG REQUIRED)
     set(bigquery_unified_client_unit_tests
         # cmake-format: sort
-        client_test.cc internal/default_options_test.cc)
+        client_test.cc internal/connection_impl_test.cc
+        internal/default_options_test.cc)
 
     # Export the list of unit tests to a .bzl file so we do not need to maintain
     # the list in two places.
