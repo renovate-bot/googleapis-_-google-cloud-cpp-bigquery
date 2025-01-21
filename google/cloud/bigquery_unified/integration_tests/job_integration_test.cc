@@ -37,34 +37,10 @@ class JobIntegrationTest : public ::testing::Test {
   std::string project_id_;
 };
 
-void verify_get_job(std::string const& project_id, std::string const& job_id,
-                    Client& client) {
-  bigquery_proto::GetJobRequest get_request;
-  get_request.set_project_id(project_id);
-  get_request.set_job_id(job_id);
-  auto get_job = client.GetJob(get_request);
-  EXPECT_THAT(get_job, IsOk());
-  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
-}
-
-void delete_job(std::string const& project_id, std::string const& job_id,
-                Client& client) {
-  bigquery_proto::DeleteJobRequest delete_request;
-  delete_request.set_project_id(project_id);
-  delete_request.set_job_id(job_id);
-  auto delete_job = client.DeleteJob(delete_request);
-  ASSERT_STATUS_OK(delete_job);
-}
-
-bigquery_proto::Job make_job_to_insert() {
+bigquery_proto::Job MakeQueryJob(std::string const& query_text) {
   bigquery_proto::JobConfigurationQuery query;
   query.mutable_use_legacy_sql()->set_value(false);
-  query.set_query(
-      "SELECT name, state, year, sum(number) as total "
-      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
-      "WHERE year >= 2000 "
-      "GROUP BY name, state, year "
-      "LIMIT 100");
+  query.set_query(query_text);
 
   bigquery_proto::JobConfiguration config;
   *config.mutable_query() = query;
@@ -81,14 +57,24 @@ TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
   auto client = Client(connection);
 
   // insert a new job by making the query
-  auto job = make_job_to_insert();
+  auto job = MakeQueryJob(
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 2000 "
+      "GROUP BY name, state, year "
+      "LIMIT 100");
   auto options = Options{}.set<BillingProjectOption>(project_id_);
   auto query_job = client.InsertJob(job, options).get();
   ASSERT_STATUS_OK(query_job);
   auto job_id = query_job->job_reference().job_id();
 
   // get the inserted job
-  verify_get_job(project_id_, job_id, client);
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id_);
+  get_request.set_job_id(job_id);
+  auto get_job = client.GetJob(get_request);
+  EXPECT_THAT(get_job, IsOk());
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
   // list all jobs of the project, find the inserted job
   bigquery_proto::ListJobsRequest list_request;
@@ -105,7 +91,11 @@ TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
   EXPECT_TRUE(find_job);
 
   // delete the inserted job
-  delete_job(project_id_, job_id, client);
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id_);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  ASSERT_STATUS_OK(delete_job);
 }
 
 TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
@@ -113,7 +103,12 @@ TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
   auto client = Client(connection);
 
   // insert a new job by making the query
-  auto job = make_job_to_insert();
+  auto job = MakeQueryJob(
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 2000 "
+      "GROUP BY name, state, year "
+      "LIMIT 100");
   auto options = Options{}.set<BillingProjectOption>(project_id_);
 
   auto job_ref = client.InsertJob(NoAwaitTag{}, job, options);
@@ -123,10 +118,19 @@ TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
   std::this_thread::sleep_for(std::chrono::seconds(2));
 
   // get the inserted job
-  verify_get_job(project_id_, job_id, client);
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id_);
+  get_request.set_job_id(job_id);
+  auto get_job = client.GetJob(get_request);
+  EXPECT_THAT(get_job, IsOk());
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
   // delete the inserted job
-  delete_job(project_id_, job_id, client);
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id_);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  ASSERT_STATUS_OK(delete_job);
 }
 
 }  // namespace
