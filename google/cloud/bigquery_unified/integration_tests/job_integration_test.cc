@@ -73,7 +73,7 @@ TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
   get_request.set_project_id(project_id_);
   get_request.set_job_id(job_id);
   auto get_job = client.GetJob(get_request);
-  EXPECT_THAT(get_job, IsOk());
+  ASSERT_STATUS_OK(get_job);
   EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
   // list all jobs of the project, find the inserted job
@@ -95,7 +95,7 @@ TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
   delete_request.set_project_id(project_id_);
   delete_request.set_job_id(job_id);
   auto delete_job = client.DeleteJob(delete_request);
-  ASSERT_STATUS_OK(delete_job);
+  EXPECT_STATUS_OK(delete_job);
 }
 
 TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
@@ -122,7 +122,7 @@ TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
   get_request.set_project_id(project_id_);
   get_request.set_job_id(job_id);
   auto get_job = client.GetJob(get_request);
-  EXPECT_THAT(get_job, IsOk());
+  ASSERT_STATUS_OK(get_job);
   EXPECT_THAT(get_job->status().state(), Eq("DONE"));
 
   // delete the inserted job
@@ -130,7 +130,7 @@ TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
   delete_request.set_project_id(project_id_);
   delete_request.set_job_id(job_id);
   auto delete_job = client.DeleteJob(delete_request);
-  ASSERT_STATUS_OK(delete_job);
+  EXPECT_STATUS_OK(delete_job);
 }
 
 }  // namespace
