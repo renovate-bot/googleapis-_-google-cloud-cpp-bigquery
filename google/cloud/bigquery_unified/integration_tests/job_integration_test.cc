@@ -37,10 +37,10 @@ class JobIntegrationTest : public ::testing::Test {
   std::string project_id_;
 };
 
-bigquery_proto::Job MakeQueryJob(std::string const& query_text) {
+bigquery_proto::Job MakeQueryJob(std::string query_text) {
   bigquery_proto::JobConfigurationQuery query;
   query.mutable_use_legacy_sql()->set_value(false);
-  query.set_query(query_text);
+  query.set_query(std::move(query_text));
 
   bigquery_proto::JobConfiguration config;
   *config.mutable_query() = query;
