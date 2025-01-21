@@ -63,6 +63,16 @@ ConnectionImpl::ConnectionImpl(
       background_(std::move(background)),
       options_(std::move(options)) {}
 
+Status ConnectionImpl::DeleteJob(
+    google::cloud::bigquery::v2::DeleteJobRequest const& request,
+    Options opts) {
+  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
+  // supports it.
+  internal::OptionsSpan span(internal::MergeOptions(
+      std::move(opts), internal::MergeOptions(options_, job_options_)));
+  return job_connection_->DeleteJob(request);
+}
+
 StatusOr<google::cloud::bigquery::v2::Job> ConnectionImpl::GetJob(
     google::cloud::bigquery::v2::GetJobRequest const& request, Options opts) {
   // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
@@ -175,16 +185,6 @@ StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::InsertJob(
   return insert_response->job_reference();
 }
 
-Status ConnectionImpl::DeleteJob(
-    google::cloud::bigquery::v2::DeleteJobRequest const& request,
-    Options opts) {
-  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
-  // supports it.
-  internal::OptionsSpan span(internal::MergeOptions(
-      std::move(opts), internal::MergeOptions(options_, job_options_)));
-  return job_connection_->DeleteJob(request);
-}
-
 StreamRange<google::cloud::bigquery::v2::ListFormatJob>
 ConnectionImpl::ListJobs(google::cloud::bigquery::v2::ListJobsRequest request,
                          Options opts) {
@@ -195,10 +195,49 @@ ConnectionImpl::ListJobs(google::cloud::bigquery::v2::ListJobsRequest request,
   return job_connection_->ListJobs(request);
 }
 
+Options ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(Options options) {
+  if (!options.has<bigquerycontrol_v2::JobServiceBackoffPolicyOption>()) {
+    options.set<bigquerycontrol_v2::JobServiceBackoffPolicyOption>(
+        options.get<bigquery_unified::BackoffPolicyOption>()->clone());
+  }
+
+  if (!options.has<bigquerycontrol_v2::JobServiceRetryPolicyOption>()) {
+    // Dynamic casting is required here because of the current class hierarchy
+    // present in RetryPolicy types found in google-cloud-cpp which prevent
+    // handling them generically like BackoffPolicy types can be. If someday we
+    // compress the RetryPolicy hierarchy, this code can be simplified similar
+    // to how BackOffPolicy types are handled.
+    auto const& unified_retry_policy =
+        options.get<bigquery_unified::RetryPolicyOption>();
+    if (auto* p = dynamic_cast<bigquery_unified::LimitedErrorCountRetryPolicy*>(
+            unified_retry_policy.get());
+        p != nullptr) {
+      options.set<bigquerycontrol_v2::JobServiceRetryPolicyOption>(
+          std::make_shared<
+              bigquerycontrol_v2::JobServiceLimitedErrorCountRetryPolicy>(
+              p->maximum_failures()));
+    }
+    if (auto* p = dynamic_cast<bigquery_unified::LimitedTimeRetryPolicy*>(
+            unified_retry_policy.get());
+        p != nullptr) {
+      options.set<bigquerycontrol_v2::JobServiceRetryPolicyOption>(
+          std::make_shared<
+              bigquerycontrol_v2::JobServiceLimitedTimeRetryPolicy>(
+              p->maximum_duration()));
+    }
+  }
+
+  return options;
+}
+
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
     Options options) {
   auto background = std::make_unique<
       rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
+
+  options =
+      ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(std::move(options));
+
   auto job_options =
       bigquerycontrol_v2_internal::JobServiceDefaultOptions(options);
   // TODO: JobServiceRestConnectionImpl requires background threads, but does it

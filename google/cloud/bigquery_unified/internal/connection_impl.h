@@ -64,6 +64,13 @@ class ConnectionImpl : public bigquery_unified::Connection {
   Options options_;
 };
 
+// Checks if `options` contains bigquerycontrol_v2 Policy Options. If not sets
+// them to the corresponding bigquery_unified Policy Options.
+// Options checked include:
+//   - JobServiceBackOffPolicyOption
+//   - JobServiceRetryPolicyOption
+Options ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(Options options);
+
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
     Options options);
 
