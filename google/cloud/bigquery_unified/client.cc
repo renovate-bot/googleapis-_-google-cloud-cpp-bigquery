@@ -85,8 +85,8 @@ StatusOr<google::cloud::bigquery::v2::JobReference> Client::InsertJob(
 future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
-  return make_ready_future<StatusOr<google::cloud::bigquery::v2::Job>>(
-      internal::UnimplementedError("not implemented"));
+  return connection_->InsertJob(
+      job_reference, internal::MergeOptions(std::move(opts), options_));
 }
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(

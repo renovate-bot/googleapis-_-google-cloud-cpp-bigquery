@@ -106,7 +106,12 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
           rest_internal::RestContext& context, google::cloud::Options options,
           google::cloud::bigquery::v2::InsertJobRequest const& request)
           -> StatusOr<google::cloud::bigquery::v2::Job> {
-        return stub->InsertJob(context, options, request);
+        auto x=  stub->InsertJob(context, options, request);
+        std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
+        if (!x) {
+          std::cout << x.status() << std::endl;
+        }
+        return x;
       },
       *current_options, insert_request, __func__);
 
@@ -183,6 +188,25 @@ StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::InsertJob(
     return insert_response.status();
   }
   return insert_response->job_reference();
+}
+
+future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
+    google::cloud::bigquery::v2::JobReference const& job_reference,
+    Options opts) {
+  bigquery::v2::GetJobRequest get_job_request;
+  get_job_request.set_project_id(job_reference.project_id());
+  get_job_request.set_job_id(job_reference.job_id());
+  get_job_request.set_location(job_reference.location().value());
+  auto job = GetJob(get_job_request, opts);
+  std::cout << "------------------!!!!!!!!---------------" << std::endl;
+  std::cout << job->job_reference().job_id() << std::endl;
+  std::cout << job->job_reference().project_id() << std::endl;
+  std::cout << job->job_reference().location().value() << std::endl;
+  std::cout << "------------------!!!!!!!!---------------" << std::endl;
+  if (!job) {
+    return make_ready_future(StatusOr<google::cloud::bigquery::v2::Job>(job.status()));
+  }
+  return InsertJob(std::move(*job), opts);
 }
 
 StreamRange<google::cloud::bigquery::v2::ListFormatJob>

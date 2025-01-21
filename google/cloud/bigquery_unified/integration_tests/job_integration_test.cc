@@ -133,6 +133,45 @@ TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
   EXPECT_STATUS_OK(delete_job);
 }
 
+TEST_F(JobIntegrationTest, InsertJobWithJobReferenceTest) {
+  std::shared_ptr<Connection> connection = MakeConnection();
+  auto client = Client(connection);
+
+  // insert a new job by making the query
+  auto job = make_job_to_insert();
+  auto options = Options{}.set<BillingProjectOption>(project_id_);
+  auto query_job = client.InsertJob(job, options).get();
+  ASSERT_STATUS_OK(query_job);
+  auto job_id = query_job->job_reference().job_id();
+
+  // insert another new job using the reference of the last job
+  auto job_ref = query_job->job_reference();
+  auto query_ref_job = client.InsertJob(job_ref, Options{}).get();
+
+  std::cout << query_ref_job->status().DebugString() << std::endl;
+
+  ASSERT_STATUS_OK(query_ref_job);
+  auto ref_job_id = query_ref_job->job_reference().job_id();
+
+  std::cout << "---------------------------------" << std::endl;
+  std::cout << job_ref.job_id() <<std::endl;
+  std::cout << job_ref.project_id() << std::endl;
+  std::cout << job_ref.location().value() << std::endl;
+  std::cout << "########################" << std::endl;
+  std::cout << ref_job_id <<std::endl;
+  std::cout << query_ref_job->job_reference().project_id() << std::endl;
+  std::cout << query_ref_job->job_reference().location().value() << std::endl;
+  std::cout << "---------------------------------" << std::endl;
+
+  // get the inserted job
+  verify_get_job(project_id_, job_id, client);
+  verify_get_job(project_id_, ref_job_id, client);
+
+  // delete the inserted job
+  delete_job(project_id_, job_id, client);
+  delete_job(project_id_, ref_job_id, client);
+}
+
 }  // namespace
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
 }  // namespace google::cloud::bigquery_unified
