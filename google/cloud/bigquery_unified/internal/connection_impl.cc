@@ -106,8 +106,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
           rest_internal::RestContext& context, google::cloud::Options options,
           google::cloud::bigquery::v2::InsertJobRequest const& request)
           -> StatusOr<google::cloud::bigquery::v2::Job> {
-        auto x = stub->InsertJob(context, options, request);
-        return x;
+        return stub->InsertJob(context, options, request);
       },
       *current_options, insert_request, __func__);
 
