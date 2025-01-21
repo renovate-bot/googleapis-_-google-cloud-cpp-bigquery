@@ -50,8 +50,8 @@ class ConnectionImpl : public bigquery_unified::Connection {
       Options opts) override;
 
   future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJob(
-    google::cloud::bigquery::v2::JobReference const& job_reference,
-    Options opts) override;
+      google::cloud::bigquery::v2::JobReference const& job_reference,
+      Options opts) override;
 
   Status DeleteJob(google::cloud::bigquery::v2::DeleteJobRequest const& request,
                    Options opts) override;

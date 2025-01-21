@@ -32,5 +32,5 @@ io::run bazel test "${args[@]}" --test_tag_filters=-integration-test "${BAZEL_TA
 io::log_h2 "Running the integration tests against prod"
 mapfile -t integration_args < <(integration::bazel_args)
 io::run bazel test "${args[@]}" "${integration_args[@]}" \
-  --cache_test_results="auto" --test_tag_filters="integration-test" --test_output=all --test_filter="JobIntegrationTest.InsertJobWithJobReferenceTest" \
+  --cache_test_results="auto" --test_tag_filters="integration-test" \
   -- "${BAZEL_TARGETS[@]}"

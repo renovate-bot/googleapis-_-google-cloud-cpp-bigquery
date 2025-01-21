@@ -106,11 +106,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
           rest_internal::RestContext& context, google::cloud::Options options,
           google::cloud::bigquery::v2::InsertJobRequest const& request)
           -> StatusOr<google::cloud::bigquery::v2::Job> {
-        auto x=  stub->InsertJob(context, options, request);
-        std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@" << std::endl;
-        if (!x) {
-          std::cout << x.status() << std::endl;
-        }
+        auto x = stub->InsertJob(context, options, request);
         return x;
       },
       *current_options, insert_request, __func__);
@@ -197,16 +193,23 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
   get_job_request.set_project_id(job_reference.project_id());
   get_job_request.set_job_id(job_reference.job_id());
   get_job_request.set_location(job_reference.location().value());
-  auto job = GetJob(get_job_request, opts);
-  std::cout << "------------------!!!!!!!!---------------" << std::endl;
-  std::cout << job->job_reference().job_id() << std::endl;
-  std::cout << job->job_reference().project_id() << std::endl;
-  std::cout << job->job_reference().location().value() << std::endl;
-  std::cout << "------------------!!!!!!!!---------------" << std::endl;
-  if (!job) {
-    return make_ready_future(StatusOr<google::cloud::bigquery::v2::Job>(job.status()));
+  auto get_job = GetJob(get_job_request, opts);
+  if (!get_job) {
+    return make_ready_future(
+        StatusOr<google::cloud::bigquery::v2::Job>(get_job.status()));
   }
-  return InsertJob(std::move(*job), opts);
+
+  google::cloud::bigquery::v2::JobConfigurationQuery query;
+  query.mutable_use_legacy_sql()->set_value(false);
+  query.set_query(get_job->configuration().query().query());
+  google::cloud::bigquery::v2::JobConfiguration config;
+  *config.mutable_query() = query;
+  for (auto const& [key, value] : get_job->configuration().labels()) {
+    config.mutable_labels()->insert({key, value});
+  }
+  google::cloud::bigquery::v2::Job job;
+  *job.mutable_configuration() = config;
+  return InsertJob(std::move(job), opts);
 }
 
 StreamRange<google::cloud::bigquery::v2::ListFormatJob>

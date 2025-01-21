@@ -138,7 +138,12 @@ TEST_F(JobIntegrationTest, InsertJobWithJobReferenceTest) {
   auto client = Client(connection);
 
   // insert a new job by making the query
-  auto job = make_job_to_insert();
+  auto job = MakeQueryJob(
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 2000 "
+      "GROUP BY name, state, year "
+      "LIMIT 100");
   auto options = Options{}.set<BillingProjectOption>(project_id_);
   auto query_job = client.InsertJob(job, options).get();
   ASSERT_STATUS_OK(query_job);
@@ -146,30 +151,37 @@ TEST_F(JobIntegrationTest, InsertJobWithJobReferenceTest) {
 
   // insert another new job using the reference of the last job
   auto job_ref = query_job->job_reference();
-  auto query_ref_job = client.InsertJob(job_ref, Options{}).get();
-
-  std::cout << query_ref_job->status().DebugString() << std::endl;
-
+  auto query_ref_job = client.InsertJob(job_ref, options).get();
   ASSERT_STATUS_OK(query_ref_job);
   auto ref_job_id = query_ref_job->job_reference().job_id();
 
-  std::cout << "---------------------------------" << std::endl;
-  std::cout << job_ref.job_id() <<std::endl;
-  std::cout << job_ref.project_id() << std::endl;
-  std::cout << job_ref.location().value() << std::endl;
-  std::cout << "########################" << std::endl;
-  std::cout << ref_job_id <<std::endl;
-  std::cout << query_ref_job->job_reference().project_id() << std::endl;
-  std::cout << query_ref_job->job_reference().location().value() << std::endl;
-  std::cout << "---------------------------------" << std::endl;
-
   // get the inserted job
-  verify_get_job(project_id_, job_id, client);
-  verify_get_job(project_id_, ref_job_id, client);
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id_);
+  get_request.set_job_id(job_id);
+  auto get_job = client.GetJob(get_request);
+  ASSERT_STATUS_OK(get_job);
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
+
+  bigquery_proto::GetJobRequest get_ref_request;
+  get_ref_request.set_project_id(project_id_);
+  get_ref_request.set_job_id(ref_job_id);
+  auto get_ref_job = client.GetJob(get_ref_request);
+  ASSERT_STATUS_OK(get_ref_job);
+  EXPECT_THAT(get_ref_job->status().state(), Eq("DONE"));
 
   // delete the inserted job
-  delete_job(project_id_, job_id, client);
-  delete_job(project_id_, ref_job_id, client);
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id_);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  EXPECT_STATUS_OK(delete_job);
+
+  bigquery_proto::DeleteJobRequest delete_ref_request;
+  delete_ref_request.set_project_id(project_id_);
+  delete_ref_request.set_job_id(ref_job_id);
+  auto delete_def_job = client.DeleteJob(delete_ref_request);
+  EXPECT_STATUS_OK(delete_def_job);
 }
 
 }  // namespace
