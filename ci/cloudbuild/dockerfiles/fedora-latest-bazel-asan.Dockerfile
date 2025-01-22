@@ -69,6 +69,7 @@ RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.g
       -DCMAKE_TOOLCHAIN_FILE=/tmp/asan_toolchain.cmake \
       -GNinja -S cpp -B cmake-out \
       --preset ninja-debug-minimal \
+      -DARROW_JEMALLOC=OFF \
       -DARROW_BUILD_STATIC=ON  && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build

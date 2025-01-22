@@ -18,9 +18,10 @@ ARG ARCH=amd64
 
 # Install the minimal packages needed to install Bazel, and then compile our
 # code.
-RUN dnf install -y clang cmake diffutils findutils gcc-c++ git lcov libcxx-devel \
-        libcxxabi-devel libasan libubsan libtsan llvm ninja-build patch python python3 \
-        python-pip tar unzip w3m wget which zip zlib-devel
+RUN dnf install -y clang cmake diffutils findutils gcc-c++ git lcov \
+        libcxx-devel  libcxxabi-devel libasan libubsan libtsan llvm \
+        ninja-build patch python python3  python-pip tar unzip w3m wget which \
+        zip zlib-devel
 
 # Install the Python modules needed to run the storage emulator
 RUN dnf makecache && dnf install -y python3-devel
@@ -60,6 +61,7 @@ RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.g
     cmake \
       -GNinja -S cpp -B cmake-out \
       --preset ninja-release-minimal \
+      -DARROW_JEMALLOC=OFF \
       -DARROW_BUILD_STATIC=ON  && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build

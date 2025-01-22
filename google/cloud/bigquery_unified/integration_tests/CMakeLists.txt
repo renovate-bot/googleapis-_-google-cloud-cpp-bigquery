@@ -20,8 +20,9 @@ endif ()
 
 include(FindGMockWithTargets)
 
-set(bigquery_unified_integration_tests # cmake-format: sort
-                                       job_integration_test.cc)
+set(bigquery_unified_integration_tests
+    # cmake-format: sort
+    job_integration_test.cc read_integration_test.cc)
 
 # Create a custom target so we can say "build all the tests"
 add_custom_target(bigquery-unified-integration-tests)

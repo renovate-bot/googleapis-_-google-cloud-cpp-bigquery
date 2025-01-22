@@ -13,16 +13,23 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/internal/connection_impl.h"
+#include "google/cloud/bigquery/storage/v1/internal/bigquery_read_connection_impl.h"
+#include "google/cloud/bigquery/storage/v1/internal/bigquery_read_option_defaults.h"
+#include "google/cloud/bigquery/storage/v1/internal/bigquery_read_stub_factory.h"
+#include "google/cloud/bigquery/storage/v1/internal/bigquery_read_tracing_connection.h"
 #include "google/cloud/bigquery_unified/idempotency_policy.h"
+#include "google/cloud/bigquery_unified/internal/arrow_reader.h"
 #include "google/cloud/bigquery_unified/internal/async_rest_long_running_operation_custom.h"
 #include "google/cloud/bigquery_unified/internal/default_options.h"
 #include "google/cloud/bigquery_unified/job_options.h"
+#include "google/cloud/bigquery_unified/read_options.h"
 #include "google/cloud/bigquery_unified/retry_policy.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_option_defaults.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_rest_connection_impl.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_rest_stub_factory.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_tracing_connection.h"
 #include "google/cloud/background_threads.h"
+#include "google/cloud/grpc_options.h"
 #include "google/cloud/internal/rest_background_threads_impl.h"
 #include "google/cloud/internal/rest_retry_loop.h"
 
@@ -51,14 +58,18 @@ std::unique_ptr<PollingPolicy> polling_policy(Options const& options) {
 }  // namespace
 
 ConnectionImpl::ConnectionImpl(
+    std::shared_ptr<google::cloud::bigquery_storage_v1::BigQueryReadConnection>
+        read_connection,
     std::shared_ptr<google::cloud::bigquerycontrol_v2::JobServiceConnection>
         job_connection,
-    google::cloud::Options job_options,
+    google::cloud::Options read_options, google::cloud::Options job_options,
     std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub,
     std::unique_ptr<google::cloud::BackgroundThreads> background,
     google::cloud::Options options)
-    : job_connection_(std::move(job_connection)),
+    : read_connection_(std::move(read_connection)),
+      job_connection_(std::move(job_connection)),
       job_stub_(std::move(job_stub)),
+      read_options_(std::move(read_options)),
       job_options_(std::move(job_options)),
       background_(std::move(background)),
       options_(std::move(options)) {}
@@ -346,6 +357,54 @@ ConnectionImpl::ListJobs(google::cloud::bigquery::v2::ListJobsRequest request,
   return job_connection_->ListJobs(request);
 }
 
+StatusOr<bigquery_unified::ReadArrowResponse> ConnectionImpl::ReadArrow(
+    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+        read_session_request,
+    Options opts) {
+  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
+  // supports it.
+  internal::OptionsSpan span(
+      internal::MergeOptions(std::move(opts), read_options_));
+  auto current_options = google::cloud::internal::SaveCurrentOptions();
+
+  auto session = read_connection_->CreateReadSession(read_session_request);
+  if (!session) return std::move(session).status();
+
+  bigquery_unified::ReadArrowResponse read_response;
+  auto arrow_schema = GetArrowSchema(session->arrow_schema());
+  if (!arrow_schema) return std::move(arrow_schema).status();
+  read_response.estimated_total_bytes =
+      session->estimated_total_bytes_scanned();
+  read_response.estimated_total_physical_file_size =
+      session->estimated_total_physical_file_size();
+  read_response.estimated_row_count = session->estimated_row_count();
+  read_response.expire_time = session->expire_time();
+  read_response.schema = arrow_schema->first;
+
+  for (auto const& s : session->streams()) {
+    // It's important to call ReadRows from read_connection_ in order to
+    // leverage the existing ResumableStreamingRead that it creates around
+    // the call to ReadRows in its stub.
+    auto factory = [connection = read_connection_,
+                    current_options](google::cloud::bigquery::storage::v1::
+                                         ReadRowsRequest const& r) mutable {
+      google::cloud::internal::OptionsSpan span(*current_options);
+      return std::make_shared<
+          StreamRange<google::cloud::bigquery::storage::v1::ReadRowsResponse>>(
+          connection->ReadRows(r));
+    };
+
+    auto arrow_stream_range = google::cloud::internal::MakeStreamRange<
+        std::shared_ptr<arrow::RecordBatch>>(
+        google::cloud::internal::MakeImmutableOptions(*current_options),
+        ArrowRecordBatchReader(s.name(), arrow_schema->first,
+                               arrow_schema->second, std::move(factory)));
+    read_response.readers.push_back(std::move(arrow_stream_range));
+  }
+
+  return read_response;
+}
+
 Options ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(Options options) {
   if (!options.has<bigquerycontrol_v2::JobServiceBackoffPolicyOption>()) {
     options.set<bigquerycontrol_v2::JobServiceBackoffPolicyOption>(
@@ -389,6 +448,20 @@ std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
   options =
       ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(std::move(options));
 
+  auto read_options =
+      bigquery_storage_v1_internal::BigQueryReadDefaultOptions(options);
+  auto read_background =
+      google::cloud::internal::MakeBackgroundThreadsFactory(read_options)();
+  auto read_auth = google::cloud::internal::CreateAuthenticationStrategy(
+      read_background->cq(), read_options);
+  auto read_stub = google::cloud::bigquery_storage_v1_internal::
+      CreateDefaultBigQueryReadStub(std::move(read_auth), read_options);
+  auto read_connection =
+      bigquery_storage_v1_internal::MakeBigQueryReadTracingConnection(
+          std::make_shared<
+              bigquery_storage_v1_internal::BigQueryReadConnectionImpl>(
+              std::move(read_background), std::move(read_stub), read_options));
+
   auto job_options =
       bigquerycontrol_v2_internal::JobServiceDefaultOptions(options);
   // TODO: JobServiceRestConnectionImpl requires background threads, but does it
@@ -407,7 +480,8 @@ std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
   //  associate all the various rpcs that are called as part of these
   //  operations.
   return std::make_shared<bigquery_unified_internal::ConnectionImpl>(
-      std::move(job_connection), std::move(job_options), std::move(job_stub),
+      std::move(read_connection), std::move(job_connection),
+      std::move(read_options), std::move(job_options), std::move(job_stub),
       std::move(background), std::move(options));
 }
 
