@@ -188,27 +188,69 @@ StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::InsertJob(
 future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
-  bigquery::v2::GetJobRequest get_job_request;
+  internal::OptionsSpan span(internal::MergeOptions(
+      std::move(opts), internal::MergeOptions(options_, job_options_)));
+  auto current_options = google::cloud::internal::SaveCurrentOptions();
+
+  google::cloud::bigquery::v2::GetJobRequest get_job_request;
   get_job_request.set_project_id(job_reference.project_id());
   get_job_request.set_job_id(job_reference.job_id());
   get_job_request.set_location(job_reference.location().value());
-  auto get_job = GetJob(get_job_request, opts);
-  if (!get_job) {
+  auto get_job_response = GetJob(get_job_request, opts);
+  if (!get_job_response) {
     return make_ready_future(
-        StatusOr<google::cloud::bigquery::v2::Job>(get_job.status()));
+        StatusOr<google::cloud::bigquery::v2::Job>(get_job_response.status()));
   }
 
-  google::cloud::bigquery::v2::JobConfigurationQuery query;
-  query.mutable_use_legacy_sql()->set_value(false);
-  query.set_query(get_job->configuration().query().query());
-  google::cloud::bigquery::v2::JobConfiguration config;
-  *config.mutable_query() = query;
-  for (auto const& [key, value] : get_job->configuration().labels()) {
-    config.mutable_labels()->insert({key, value});
-  }
-  google::cloud::bigquery::v2::Job job;
-  *job.mutable_configuration() = config;
-  return InsertJob(std::move(job), opts);
+  return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
+      google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
+      google::cloud::bigquery::v2::GetJobRequest,
+      google::cloud::bigquery::v2::CancelJobRequest>(
+      background_->cq(), current_options, *get_job_response,
+      [stub = job_stub_](
+          CompletionQueue& cq,
+          std::unique_ptr<rest_internal::RestContext> context,
+          google::cloud::internal::ImmutableOptions options,
+          google::cloud::bigquery::v2::GetJobRequest const& request)
+          -> future<StatusOr<google::cloud::bigquery::v2::Job>> {
+        return make_ready_future(
+            stub->GetJob(*std::move(context), *std::move(options), request));
+      },
+      [stub = job_stub_](
+          CompletionQueue& cq,
+          std::unique_ptr<rest_internal::RestContext> context,
+          google::cloud::internal::ImmutableOptions options,
+          google::cloud::bigquery::v2::CancelJobRequest const& request)
+          -> future<Status> {
+        auto cancel_response =
+            stub->CancelJob(*std::move(context), *std::move(options), request);
+        if (!cancel_response) {
+          return make_ready_future(std::move(cancel_response).status());
+        }
+        return make_ready_future(Status{});
+      },
+      [](StatusOr<google::cloud::bigquery::v2::Job> op, std::string const&) {
+        return op;
+      },
+      polling_policy(*current_options), __func__,
+      [](google::cloud::bigquery::v2::Job const& op) {
+        return op.status().state() == "DONE";
+      },
+      [ref = job_reference](std::string const&,
+                            google::cloud::bigquery::v2::GetJobRequest& r) {
+        r.set_project_id(ref.project_id());
+        r.set_job_id(ref.job_id());
+        r.set_location(ref.location().value());
+      },
+      [ref = job_reference](std::string const&,
+                            google::cloud::bigquery::v2::CancelJobRequest& r) {
+        r.set_project_id(ref.project_id());
+        r.set_job_id(ref.job_id());
+        r.set_location(ref.location().value());
+      },
+      [](StatusOr<google::cloud::bigquery::v2::Job> const&) {
+        return std::string{"InsertJob"};
+      });
 }
 
 StreamRange<google::cloud::bigquery::v2::ListFormatJob>
