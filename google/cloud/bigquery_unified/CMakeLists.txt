@@ -217,6 +217,7 @@ endif ()
 
 add_subdirectory(testing_util)
 add_subdirectory(integration_tests)
+add_subdirectory(samples)
 
 # Define the tests in a function so we have a new scope for variable names.
 function (bigquery_unified_client_define_tests)
