@@ -1,0 +1,163 @@
+// Copyright 2025 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include "google/cloud/bigquery_unified/client.h"
+#include "google/cloud/bigquery_unified/job_options.h"
+#include "google/cloud/internal/getenv.h"
+#include "google/cloud/log.h"
+#include "google/cloud/project.h"
+#include <iostream>
+
+namespace {
+
+//! [START bigquery_get_job] [bigquery-get-job]
+void GetJob(google::cloud::bigquery_unified::Client client,
+            std::vector<std::string> const& argv) {
+  google::cloud::bigquery::v2::GetJobRequest request;
+  request.set_project_id(argv[0]);
+  request.set_job_id(argv[1]);
+  auto job = client.GetJob(request);
+  if (!job) throw std::move(job).status();
+  std::cout << "Job " << argv[1] << " exists and its metadata is:\n"
+            << job->DebugString();
+}
+//! [END bigquery_get_job] [bigquery-get-job]
+
+google::cloud::bigquery_unified::Client MakeSampleClient() {
+  return google::cloud::bigquery_unified::Client(
+      google::cloud::bigquery_unified::MakeConnection());
+}
+
+std::string Basename(absl::string_view name) {
+  auto last_sep = name.find_last_of("/\\");
+  if (last_sep != absl::string_view::npos) name.remove_prefix(last_sep + 1);
+  return std::string(name);
+}
+
+int RunOneCommand(std::vector<std::string> argv) {
+  using CommandType = std::function<void(std::vector<std::string> const&)>;
+  using SampleFunction = void (*)(google::cloud::bigquery_unified::Client,
+                                  std::vector<std::string> const&);
+  using CommandMap = std::map<std::string, CommandType>;
+
+  auto make_command_entry = [](std::string const& sample_name,
+                               SampleFunction sample, std::size_t argc,
+                               std::string const& usage) {
+    auto make_command = [](std::string const& sample_name,
+                           SampleFunction sample, std::size_t argc,
+                           std::string const& usage) {
+      return [sample_name, sample, argc,
+              usage](std::vector<std::string> const& argv) {
+        if (argv.size() != argc) {
+          throw std::runtime_error(sample_name + usage);
+        }
+        sample(MakeSampleClient(), argv);
+      };
+    };
+    return CommandMap::value_type(
+        sample_name, make_command(sample_name, sample, argc, usage));
+  };
+
+  CommandMap commands = {make_command_entry("bigquery-get-job", GetJob, 2,
+                                            " <project_id> <job_id>")};
+
+  static std::string usage_msg = [&argv, &commands] {
+    std::string usage;
+    usage += "Usage: ";
+    usage += Basename(argv[0]);
+    usage += " <command> [arguments]\n\n";
+    usage += "Commands:\n";
+    for (auto&& kv : commands) {
+      try {
+        kv.second({});
+      } catch (std::exception const& ex) {
+        usage += "    ";
+        usage += ex.what();
+        usage += "\n";
+      }
+    }
+    return usage;
+  }();
+
+  if (argv.size() < 2) {
+    std::cerr << "Missing command argument\n" << usage_msg << "\n";
+    return 1;
+  }
+  std::string command_name = argv[1];
+  argv.erase(argv.begin());  // remove the program name from the list.
+  argv.erase(argv.begin());  // remove the command name from the list.
+
+  auto command = commands.find(command_name);
+  if (commands.end() == command) {
+    std::cerr << "Unknown command " << command_name << "\n"
+              << usage_msg << "\n";
+    return 1;
+  }
+
+  // Run the command.
+  command->second(std::move(argv));
+  return 0;
+}  // NOLINT [clang-analyzer-cplusplus.NewDeleteLeaks]
+
+bool AutoRun() {
+  return google::cloud::internal::GetEnv("GOOGLE_CLOUD_CPP_AUTO_RUN_EXAMPLES")
+             .value_or("") == "yes";
+}
+
+void SampleBanner(std::string const& name) {
+  std::cout << "\nRunning " << name << " sample at "
+            << absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", absl::Now(),
+                                absl::UTCTimeZone())
+            << std::endl;
+  GCP_LOG(DEBUG) << "Running " << name << " sample";
+}
+
+void RunAll() {
+  auto const project_id =
+      google::cloud::internal::GetEnv("GOOGLE_CLOUD_PROJECT").value_or("");
+  if (project_id.empty()) {
+    throw std::runtime_error("GOOGLE_CLOUD_PROJECT is not set or is empty");
+  }
+
+  auto client = MakeSampleClient();
+
+  google::cloud::bigquery::v2::ListJobsRequest list_jobs_request;
+  list_jobs_request.set_project_id(project_id);
+  std::string job_id;
+  for (auto const& j : client.ListJobs(list_jobs_request)) {
+    if (!j) throw std::move(j).status();
+    job_id = j->job_reference().job_id();
+    break;
+  }
+
+  SampleBanner("bigquery-get-job");
+  GetJob(client, {project_id, job_id});
+}
+
+}  // namespace
+
+int main(int ac, char* av[]) try {
+  if (AutoRun()) {
+    RunAll();
+    return 0;
+  }
+  return RunOneCommand({av, av + ac});
+} catch (google::cloud::Status const& status) {
+  std::cerr << status << "\n";
+  google::cloud::LogSink::Instance().Flush();
+  return 1;
+} catch (std::exception const& ex) {
+  std::cerr << ex.what() << "\n";
+  return 1;
+}
