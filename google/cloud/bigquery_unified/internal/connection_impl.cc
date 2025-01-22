@@ -196,7 +196,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
   get_job_request.set_project_id(job_reference.project_id());
   get_job_request.set_job_id(job_reference.job_id());
   get_job_request.set_location(job_reference.location().value());
-  auto get_job_response = GetJob(get_job_request, opts);
+  auto get_job_response = job_connection_->GetJob(get_job_request);
   if (!get_job_response) {
     return make_ready_future(
         StatusOr<google::cloud::bigquery::v2::Job>(get_job_response.status()));
