@@ -39,12 +39,11 @@ StatusOr<google::cloud::bigquery::v2::JobReference> Connection::CancelJob(
   return internal::UnimplementedError("not implemented");
 }
 
-future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
-Connection::CancelJob(
+future<StatusOr<google::cloud::bigquery::v2::Job>> Connection::CancelJob(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
   return google::cloud::make_ready_future<
-      StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>(
+      StatusOr<google::cloud::bigquery::v2::Job>>(
       Status(StatusCode::kUnimplemented, "not implemented"));
 }
 
