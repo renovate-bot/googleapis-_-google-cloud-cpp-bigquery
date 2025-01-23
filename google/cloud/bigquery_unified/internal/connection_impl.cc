@@ -188,6 +188,11 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
       },
       *current_options, insert_request, __func__);
 
+  if (!insert_response) {
+    return make_ready_future(
+        StatusOr<google::cloud::bigquery::v2::Job>(insert_response.status()));
+  }
+
   return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
       google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
       google::cloud::bigquery::v2::GetJobRequest,

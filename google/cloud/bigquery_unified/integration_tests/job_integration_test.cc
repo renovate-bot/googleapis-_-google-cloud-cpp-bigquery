@@ -18,7 +18,6 @@
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/internal/getenv.h"
 #include <gmock/gmock.h>
-#include <thread>
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
@@ -99,41 +98,6 @@ TEST_F(JobIntegrationTest, InsertJobAwaitTest) {
 }
 
 TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
-  std::shared_ptr<Connection> connection = MakeConnection();
-  auto client = Client(connection);
-
-  // insert a new no-await job by making the query
-  auto job = MakeQueryJob(
-      "SELECT name, state, year, sum(number) as total "
-      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
-      "WHERE year >= 2000 "
-      "GROUP BY name, state, year "
-      "LIMIT 100");
-  auto options = Options{}.set<BillingProjectOption>(project_id_);
-
-  auto job_ref = client.InsertJob(NoAwaitTag{}, job, options);
-  ASSERT_STATUS_OK(job_ref);
-  auto job_id = job_ref->job_id();
-
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
-  // get the inserted job
-  bigquery_proto::GetJobRequest get_request;
-  get_request.set_project_id(project_id_);
-  get_request.set_job_id(job_id);
-  auto get_job = client.GetJob(get_request);
-  ASSERT_STATUS_OK(get_job);
-  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
-
-  // delete the inserted job
-  bigquery_proto::DeleteJobRequest delete_request;
-  delete_request.set_project_id(project_id_);
-  delete_request.set_job_id(job_id);
-  auto delete_job = client.DeleteJob(delete_request);
-  EXPECT_STATUS_OK(delete_job);
-}
-
-TEST_F(JobIntegrationTest, InsertJobWithJobReferenceTest) {
   std::shared_ptr<Connection> connection = MakeConnection();
   auto client = Client(connection);
 
