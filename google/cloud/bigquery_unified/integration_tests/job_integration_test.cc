@@ -25,7 +25,7 @@ namespace {
 
 using ::google::cloud::bigquery_unified::testing_util::IsOk;
 using ::testing::Eq;
-namespace bigquery_proto = google::cloud::bigquery::v2;
+namespace bigquery_proto = ::google::cloud::bigquery::v2;
 
 class JobIntegrationTest : public ::testing::Test {
  protected:
