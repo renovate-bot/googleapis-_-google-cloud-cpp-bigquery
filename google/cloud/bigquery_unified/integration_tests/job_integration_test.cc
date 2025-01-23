@@ -52,7 +52,7 @@ bigquery_proto::Job MakeQueryJob(std::string query_text) {
   return job;
 }
 
-TEST_F(JobIntegrationTest, InsertJobWithJobInputTest) {
+TEST_F(JobIntegrationTest, InsertJobAwaitTest) {
   std::shared_ptr<Connection> connection = MakeConnection();
   auto client = Client(connection);
 
@@ -102,7 +102,7 @@ TEST_F(JobIntegrationTest, InsertJobNoAwaitTest) {
   std::shared_ptr<Connection> connection = MakeConnection();
   auto client = Client(connection);
 
-  // insert a new job by making the query
+  // insert a new no-await job by making the query
   auto job = MakeQueryJob(
       "SELECT name, state, year, sum(number) as total "
       "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
@@ -137,7 +137,7 @@ TEST_F(JobIntegrationTest, InsertJobWithJobReferenceTest) {
   std::shared_ptr<Connection> connection = MakeConnection();
   auto client = Client(connection);
 
-  // insert a new job by making the query
+  // insert a new no-await job by making the query
   auto job = MakeQueryJob(
       "SELECT name, state, year, sum(number) as total "
       "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
@@ -155,6 +155,45 @@ TEST_F(JobIntegrationTest, InsertJobWithJobReferenceTest) {
   EXPECT_EQ(poll_insert_job->job_reference().job_id(), job_id);
   EXPECT_EQ(poll_insert_job->job_reference().project_id(), project_id_);
   EXPECT_THAT(poll_insert_job->status().state(), Eq("DONE"));
+
+  // get the inserted job
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id_);
+  get_request.set_job_id(job_id);
+  auto get_job = client.GetJob(get_request);
+  ASSERT_STATUS_OK(get_job);
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
+
+  // delete the inserted job
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id_);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  EXPECT_STATUS_OK(delete_job);
+}
+
+TEST_F(JobIntegrationTest, CancelJobAwaitTest) {
+  std::shared_ptr<Connection> connection = MakeConnection();
+  auto client = Client(connection);
+
+  // insert a new no-await job by making the query
+  auto job = MakeQueryJob(
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 2000 "
+      "GROUP BY name, state, year ");
+  auto options = Options{}.set<BillingProjectOption>(project_id_);
+  auto job_ref = client.InsertJob(NoAwaitTag{}, job, options);
+  ASSERT_STATUS_OK(job_ref);
+  auto job_id = job_ref->job_id();
+
+  // cancel the inserted job
+  bigquery_proto::CancelJobRequest cancel_request;
+  cancel_request.set_project_id(project_id_);
+  cancel_request.set_job_id(job_id);
+  cancel_request.set_location(job_ref->location().value());
+  auto cancel_job = client.CancelJob(cancel_request).get();
+  ASSERT_STATUS_OK(cancel_job);
 
   // get the inserted job
   bigquery_proto::GetJobRequest get_request;

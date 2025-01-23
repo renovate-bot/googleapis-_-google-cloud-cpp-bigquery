@@ -25,12 +25,11 @@ Client::Client(std::shared_ptr<Connection> connection, Options opts)
       options_(
           internal::MergeOptions(std::move(opts), connection_->options())) {}
 
-future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
-Client::CancelJob(google::cloud::bigquery::v2::CancelJobRequest const& request,
-                  Options opts) {
-  return make_ready_future<
-      StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>(
-      internal::UnimplementedError("not implemented"));
+future<StatusOr<google::cloud::bigquery::v2::Job>> Client::CancelJob(
+    google::cloud::bigquery::v2::CancelJobRequest const& request,
+    Options opts) {
+  return connection_->CancelJob(
+      request, internal::MergeOptions(std::move(opts), options_));
 }
 
 StatusOr<google::cloud::bigquery::v2::JobReference> Client::CancelJob(

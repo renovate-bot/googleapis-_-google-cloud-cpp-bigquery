@@ -24,12 +24,11 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 Connection::~Connection() = default;
 
 // CancelJob
-future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
-Connection::CancelJob(
+future<StatusOr<google::cloud::bigquery::v2::Job>> Connection::CancelJob(
     google::cloud::bigquery::v2::CancelJobRequest const& request,
     Options opts) {
   return google::cloud::make_ready_future<
-      StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>(
+      StatusOr<google::cloud::bigquery::v2::Job>>(
       Status(StatusCode::kUnimplemented, "not implemented"));
 }
 
