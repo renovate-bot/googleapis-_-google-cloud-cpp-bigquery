@@ -18,7 +18,6 @@
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/internal/getenv.h"
 #include <gmock/gmock.h>
-#include <thread>
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
