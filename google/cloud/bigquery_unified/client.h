@@ -79,7 +79,7 @@ class Client {
   ///@}
 
   // CancelJob
-  future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>> CancelJob(
+  future<StatusOr<google::cloud::bigquery::v2::Job>> CancelJob(
       google::cloud::bigquery::v2::CancelJobRequest const& request,
       Options opts = {});
 

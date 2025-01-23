@@ -38,6 +38,10 @@ class ConnectionImpl : public bigquery_unified::Connection {
 
   Options options() override { return options_; }
 
+  future<StatusOr<google::cloud::bigquery::v2::Job>> CancelJob(
+      google::cloud::bigquery::v2::CancelJobRequest const& request,
+      Options opts) override;
+
   StatusOr<google::cloud::bigquery::v2::Job> GetJob(
       google::cloud::bigquery::v2::GetJobRequest const& request,
       Options opts) override;

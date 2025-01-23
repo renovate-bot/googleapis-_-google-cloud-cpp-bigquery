@@ -49,9 +49,9 @@ class Connection {
   virtual Options options() { return Options{}; }
 
   // CancelJob
-  virtual future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
-  CancelJob(google::cloud::bigquery::v2::CancelJobRequest const& request,
-            Options opts);
+  virtual future<StatusOr<google::cloud::bigquery::v2::Job>> CancelJob(
+      google::cloud::bigquery::v2::CancelJobRequest const& request,
+      Options opts);
 
   virtual StatusOr<google::cloud::bigquery::v2::JobReference> CancelJob(
       google::cloud::NoAwaitTag,

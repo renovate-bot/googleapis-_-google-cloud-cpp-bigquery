@@ -63,6 +63,84 @@ ConnectionImpl::ConnectionImpl(
       background_(std::move(background)),
       options_(std::move(options)) {}
 
+future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::CancelJob(
+    google::cloud::bigquery::v2::CancelJobRequest const& request,
+    Options opts) {
+  // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
+  // supports it.
+  internal::OptionsSpan span(internal::MergeOptions(
+      std::move(opts), internal::MergeOptions(options_, job_options_)));
+  auto current_options = google::cloud::internal::SaveCurrentOptions();
+
+  auto idempotency = idempotency_policy(*current_options)
+                         ->CancelJob(request, *current_options);
+  auto cancel_response = rest_internal::RestRetryLoop(
+      retry_policy(*current_options), backoff_policy(*current_options),
+      std::move(idempotency),
+      [stub = job_stub_](
+          rest_internal::RestContext& rest_context, Options const& options,
+          google::cloud::bigquery::v2::CancelJobRequest const& request) {
+        return stub->CancelJob(rest_context, options, request);
+      },
+      *current_options, request, __func__);
+
+  if (!cancel_response) {
+    return make_ready_future(
+        StatusOr<google::cloud::bigquery::v2::Job>(cancel_response.status()));
+  }
+
+  return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
+      google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
+      google::cloud::bigquery::v2::GetJobRequest,
+      google::cloud::bigquery::v2::CancelJobRequest>(
+      background_->cq(), current_options, cancel_response->job(),
+      [stub = job_stub_](
+          CompletionQueue& cq,
+          std::unique_ptr<rest_internal::RestContext> context,
+          google::cloud::internal::ImmutableOptions options,
+          google::cloud::bigquery::v2::GetJobRequest const& request)
+          -> future<StatusOr<google::cloud::bigquery::v2::Job>> {
+        return make_ready_future(
+            stub->GetJob(*std::move(context), *std::move(options), request));
+      },
+      [stub = job_stub_](
+          CompletionQueue& cq,
+          std::unique_ptr<rest_internal::RestContext> context,
+          google::cloud::internal::ImmutableOptions options,
+          google::cloud::bigquery::v2::CancelJobRequest const& request)
+          -> future<Status> {
+        auto cancel_response =
+            stub->CancelJob(*std::move(context), *std::move(options), request);
+        if (!cancel_response) {
+          return make_ready_future(std::move(cancel_response).status());
+        }
+        return make_ready_future(Status{});
+      },
+      [](StatusOr<google::cloud::bigquery::v2::Job> op, std::string const&) {
+        return op;
+      },
+      polling_policy(*current_options), __func__,
+      [](google::cloud::bigquery::v2::Job const& op) {
+        return op.status().state() == "DONE";
+      },
+      [ref = cancel_response->job().job_reference()](
+          std::string const&, google::cloud::bigquery::v2::GetJobRequest& r) {
+        r.set_project_id(ref.project_id());
+        r.set_job_id(ref.job_id());
+        r.set_location(ref.location().value());
+      },
+      [ref = cancel_response->job().job_reference()](
+          std::string const&,
+          google::cloud::bigquery::v2::CancelJobRequest& r) {
+        r.set_project_id(ref.project_id());
+        r.set_job_id(ref.job_id());
+        r.set_location(ref.location().value());
+      },
+      [](StatusOr<google::cloud::bigquery::v2::Job> const&) {
+        return std::string{"CancelJob"};
+      });
+}
+
 Status ConnectionImpl::DeleteJob(
     google::cloud::bigquery::v2::DeleteJobRequest const& request,
     Options opts) {
