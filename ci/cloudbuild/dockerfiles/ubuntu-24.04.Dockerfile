@@ -50,17 +50,23 @@ RUN apt-get update && \
         ca-certificates \
         apt-transport-https
 
-# Install Apache Arrow and create symlinks to where our Bazel Workspace expects
-# to find the headers and libs.
-RUN apt install -y -V ca-certificates lsb-release wget
-RUN wget https://apache.jfrog.io/artifactory/arrow/$(lsb_release --id --short | tr 'A-Z' 'a-z')/apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-RUN apt install -y -V ./apache-arrow-apt-source-latest-$(lsb_release --codename --short).deb
-RUN apt update
-RUN apt install -y -V libarrow-dev
+# Build and install Apache Arrow manually to minimize the Apache Arrow
+# components.
+WORKDIR /var/tmp/build/arrow
+RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S cpp -B cmake-out \
+      --preset ninja-release-minimal \
+      -DARROW_JEMALLOC=OFF \
+      -DARROW_BUILD_STATIC=ON  && \
+    cmake --build cmake-out --target install && \
+    ldconfig && cd /var/tmp && rm -fr build
 RUN mkdir -p /usr/local/lib64
 RUN ln -s $(find /usr -name libarrow.a) /usr/local/lib64/libarrow.a
 RUN ln -s $(find /usr -name libarrow.so) /usr/local/lib64/libarrow.so
 RUN ln -s $(find /usr/include -name arrow -type d) /usr/local/include/arrow
+ENV LD_LIBRARY_PATH=/usr/local/lib64:${LD_LIBRARY_PATH}
 
 # Install Python packages used in the integration tests.
 RUN update-alternatives --install /usr/bin/python python $(which python3) 10

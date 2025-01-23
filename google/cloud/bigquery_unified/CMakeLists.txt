@@ -135,6 +135,8 @@ set(bigquery_unified_library_files
     connection.h
     idempotency_policy.cc
     idempotency_policy.h
+    internal/arrow_reader.cc
+    internal/arrow_reader.h
     internal/async_rest_long_running_operation_custom.h
     internal/connection_impl.cc
     internal/connection_impl.h
@@ -142,6 +144,7 @@ set(bigquery_unified_library_files
     internal/default_options.h
     job_options.h
     read_arrow_response.h
+    read_options.h
     retry_policy.h)
 
 set(bigquery_unified_deps

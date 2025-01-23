@@ -20,11 +20,13 @@ google_cloud_cpp_bigquery_bigquery_unified_hdrs = [
     "client.h",
     "connection.h",
     "idempotency_policy.h",
+    "internal/arrow_reader.h",
     "internal/async_rest_long_running_operation_custom.h",
     "internal/connection_impl.h",
     "internal/default_options.h",
     "job_options.h",
     "read_arrow_response.h",
+    "read_options.h",
     "retry_policy.h",
 ]
 
@@ -32,6 +34,7 @@ google_cloud_cpp_bigquery_bigquery_unified_srcs = [
     "client.cc",
     "connection.cc",
     "idempotency_policy.cc",
+    "internal/arrow_reader.cc",
     "internal/connection_impl.cc",
     "internal/default_options.cc",
 ]
