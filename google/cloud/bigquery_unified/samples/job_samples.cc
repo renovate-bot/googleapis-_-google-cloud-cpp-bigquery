@@ -36,7 +36,7 @@ void GetJob(google::cloud::bigquery_unified::Client client,
 
 //! [START bigquery_insert_job] [bigquery-insert-job]
 void InsertJob(google::cloud::bigquery_unified::Client client,
-            std::vector<std::string> const& argv) {
+               std::vector<std::string> const& argv) {
   google::cloud::bigquery::v2::JobConfigurationQuery query;
   query.mutable_use_legacy_sql()->set_value(false);
   query.set_query(std::move(argv[1]));
@@ -47,11 +47,14 @@ void InsertJob(google::cloud::bigquery_unified::Client client,
 
   google::cloud::bigquery::v2::Job job;
   *job.mutable_configuration() = config;
-  auto options = google::cloud::Options{}.set<google::cloud::bigquery_unified::BillingProjectOption>(argv[0]);
-  
+  auto options =
+      google::cloud::Options{}
+          .set<google::cloud::bigquery_unified::BillingProjectOption>(argv[0]);
+
   auto insert_job = client.InsertJob(job, options).get();
   if (!insert_job) throw std::move(job).status();
-  std::cout << "Job " << insert_job->job_reference().job_id() << " is inserted and its metadata is:\n"
+  std::cout << "Job " << insert_job->job_reference().job_id()
+            << " is inserted and its metadata is:\n"
             << insert_job->DebugString();
 }
 //! [END bigquery_insert_job] [bigquery-insert-job]
@@ -169,7 +172,8 @@ void RunAll() {
   GetJob(client, {project_id, job_id});
 
   SampleBanner("bigquery-insert-job");
-  auto query_text = "SELECT name, state, year, sum(number) as total "
+  auto query_text =
+      "SELECT name, state, year, sum(number) as total "
       "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
       "WHERE year >= 1996 "
       "GROUP BY name, state, year ";
