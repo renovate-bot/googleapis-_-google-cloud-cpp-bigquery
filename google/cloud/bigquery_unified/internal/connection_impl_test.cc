@@ -13,16 +13,22 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/internal/connection_impl.h"
+#include "google/cloud/bigquery_unified/internal/default_options.h"
 #include "google/cloud/bigquery_unified/job_options.h"
+#include "google/cloud/bigquery_unified/testing_util/status_matchers.h"
 #include "google/cloud/bigquerycontrol/v2/job_connection.h"
 #include "google/cloud/bigquerycontrol/v2/job_options.h"
+#include "google/cloud/internal/rest_background_threads_impl.h"
 #include <gmock/gmock.h>
 
 namespace google::cloud::bigquery_unified_internal {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
+using ::google::cloud::bigquery_unified::testing_util::IsOk;
+using ::google::cloud::bigquery_unified::testing_util::StatusIs;
 using ::testing::Eq;
+using ::testing::Return;
 
 class MockBackoffPolicy : public google::cloud::BackoffPolicy {
  public:
@@ -166,6 +172,311 @@ TEST(ApplyUnifiedPolicyOptionsToJobServicePolicyOptions,
   ASSERT_TRUE(job_limited_error_count_retry_policy != nullptr);
   EXPECT_THAT(job_limited_error_count_retry_policy->maximum_failures(),
               Eq(8675309));
+}
+
+class MockJobServiceRestStub
+    : public google::cloud::bigquerycontrol_v2_internal::JobServiceRestStub {
+ public:
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::JobCancelResponse>,
+              CancelJob,
+              (google::cloud::rest_internal::RestContext & rest_context,
+               Options const& options,
+               google::cloud::bigquery::v2::CancelJobRequest const& request),
+              (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::Job>, GetJob,
+              (google::cloud::rest_internal::RestContext & rest_context,
+               Options const& options,
+               google::cloud::bigquery::v2::GetJobRequest const& request),
+              (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::Job>, InsertJob,
+              (google::cloud::rest_internal::RestContext & rest_context,
+               Options const& options,
+               google::cloud::bigquery::v2::InsertJobRequest const& request),
+              (override));
+  MOCK_METHOD(Status, DeleteJob,
+              (google::cloud::rest_internal::RestContext & rest_context,
+               Options const& options,
+               google::cloud::bigquery::v2::DeleteJobRequest const& request),
+              (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::JobList>, ListJobs,
+              (google::cloud::rest_internal::RestContext & rest_context,
+               Options const& options,
+               google::cloud::bigquery::v2::ListJobsRequest const& request),
+              (override));
+  MOCK_METHOD(
+      StatusOr<google::cloud::bigquery::v2::GetQueryResultsResponse>,
+      GetQueryResults,
+      (google::cloud::rest_internal::RestContext & rest_context,
+       Options const& options,
+       google::cloud::bigquery::v2::GetQueryResultsRequest const& request),
+      (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::QueryResponse>, Query,
+              (google::cloud::rest_internal::RestContext & rest_context,
+               Options const& options,
+               google::cloud::bigquery::v2::PostQueryRequest const& request),
+              (override));
+};
+
+class MockJobServiceConnection
+    : public bigquerycontrol_v2::JobServiceConnection {
+ public:
+  MOCK_METHOD(Options, options, (), (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::JobCancelResponse>,
+              CancelJob,
+              (google::cloud::bigquery::v2::CancelJobRequest const& request),
+              (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::Job>, GetJob,
+              (google::cloud::bigquery::v2::GetJobRequest const& request),
+              (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::Job>, InsertJob,
+              (google::cloud::bigquery::v2::InsertJobRequest const& request),
+              (override));
+  MOCK_METHOD(Status, DeleteJob,
+              (google::cloud::bigquery::v2::DeleteJobRequest const& request),
+              (override));
+  MOCK_METHOD((StreamRange<google::cloud::bigquery::v2::ListFormatJob>),
+              ListJobs, (google::cloud::bigquery::v2::ListJobsRequest request),
+              (override));
+  MOCK_METHOD(
+      StatusOr<google::cloud::bigquery::v2::GetQueryResultsResponse>,
+      GetQueryResults,
+      (google::cloud::bigquery::v2::GetQueryResultsRequest const& request),
+      (override));
+  MOCK_METHOD(StatusOr<google::cloud::bigquery::v2::QueryResponse>, Query,
+              (google::cloud::bigquery::v2::PostQueryRequest const& request),
+              (override));
+};
+
+class MockBigQueryReadConnection
+    : public bigquery_storage_v1::BigQueryReadConnection {
+ public:
+  MOCK_METHOD(Options, options, (), (override));
+
+  MOCK_METHOD(
+      StatusOr<google::cloud::bigquery::storage::v1::ReadSession>,
+      CreateReadSession,
+      (google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+           request),
+      (override));
+
+  MOCK_METHOD(
+      StreamRange<google::cloud::bigquery::storage::v1::ReadRowsResponse>,
+      ReadRows,
+      (google::cloud::bigquery::storage::v1::ReadRowsRequest const& request),
+      (override));
+
+  MOCK_METHOD(
+      StatusOr<google::cloud::bigquery::storage::v1::SplitReadStreamResponse>,
+      SplitReadStream,
+      (google::cloud::bigquery::storage::v1::SplitReadStreamRequest const&
+           request),
+      (override));
+};
+
+class MockBackgroundThreads : public BackgroundThreads {
+ public:
+  MOCK_METHOD(CompletionQueue, cq, (), (const, override));
+};
+
+class ConnectionImplTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    mock_read_connection_ = std::make_shared<MockBigQueryReadConnection>();
+    mock_job_connection_ = std::make_shared<MockJobServiceConnection>();
+    mock_job_stub_ = std::make_shared<MockJobServiceRestStub>();
+    mock_background_ = std::make_unique<MockBackgroundThreads>();
+  }
+
+  static Options SetQuickPollingOptions(Options options) {
+    options
+        .set<bigquery_unified::RetryPolicyOption>(
+            std::make_shared<bigquery_unified::LimitedErrorCountRetryPolicy>(3))
+        .set<bigquery_unified::BackoffPolicyOption>(
+            std::make_shared<ExponentialBackoffPolicy>(
+                std::chrono::milliseconds(0), std::chrono::milliseconds(0),
+                2.0));
+    options.set<bigquery_unified::PollingPolicyOption>(
+        std::make_shared<
+            GenericPollingPolicy<bigquery_unified::RetryPolicyOption::Type,
+                                 bigquery_unified::BackoffPolicyOption::Type>>(
+            options.get<bigquery_unified::RetryPolicyOption>()->clone(),
+            options.get<bigquery_unified::BackoffPolicyOption>()->clone()));
+    return options;
+  }
+
+  std::shared_ptr<MockBigQueryReadConnection> mock_read_connection_;
+  std::shared_ptr<MockJobServiceConnection> mock_job_connection_;
+  std::shared_ptr<MockJobServiceRestStub> mock_job_stub_;
+  std::unique_ptr<MockBackgroundThreads> mock_background_;
+};
+
+TEST_F(ConnectionImplTest, InsertJobNoAwait) {
+  std::string const project_id = "my-project";
+  std::string const job_id = "my_job";
+
+  EXPECT_CALL(*mock_job_connection_, InsertJob)
+      .WillOnce(
+          [&](google::cloud::bigquery::v2::InsertJobRequest const& request) {
+            EXPECT_THAT(request.job().job_reference().project_id(),
+                        Eq(project_id));
+            EXPECT_THAT(request.job().job_reference().job_id(), Eq(job_id));
+            google::cloud::bigquery::v2::Job job;
+            job.mutable_job_reference()->set_project_id(project_id);
+            job.mutable_job_reference()->set_job_id(job_id);
+            return job;
+          });
+
+  auto connection_impl =
+      ConnectionImpl(mock_read_connection_, mock_job_connection_, {}, {},
+                     mock_job_stub_, std::move(mock_background_), {});
+
+  google::cloud::bigquery::v2::Job job;
+  job.mutable_job_reference()->set_project_id(project_id);
+  job.mutable_job_reference()->set_job_id(job_id);
+  auto result = connection_impl.InsertJob(NoAwaitTag{}, job, {});
+  ASSERT_STATUS_OK(result);
+  EXPECT_THAT(result->project_id(), Eq(project_id));
+  EXPECT_THAT(result->job_id(), Eq(job_id));
+}
+
+TEST_F(ConnectionImplTest, InsertJobAwaitImmediatelyDone) {
+  std::string const project_id = "my-project";
+  std::string const job_id = "my_job";
+
+  EXPECT_CALL(*mock_background_, cq).WillOnce(Return(CompletionQueue{}));
+  EXPECT_CALL(*mock_job_connection_, GetJob)
+      .WillOnce([&](google::cloud::bigquery::v2::GetJobRequest const& request) {
+        EXPECT_THAT(request.project_id(), Eq(project_id));
+        EXPECT_THAT(request.job_id(), Eq(job_id));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id(project_id);
+        job.mutable_job_reference()->set_job_id(job_id);
+        job.mutable_status()->set_state("DONE");
+        return job;
+      });
+
+  auto bigquery_unified_options =
+      Options{}.set<bigquery_unified::RetryPolicyOption>(
+          std::make_unique<bigquery_unified::LimitedErrorCountRetryPolicy>(3));
+
+  auto connection_impl = ConnectionImpl(
+      mock_read_connection_, mock_job_connection_, {}, {}, mock_job_stub_,
+      std::move(mock_background_), DefaultOptions(bigquery_unified_options));
+
+  google::cloud::bigquery::v2::JobReference job_reference;
+  job_reference.set_project_id(project_id);
+  job_reference.set_job_id(job_id);
+  auto result = connection_impl.InsertJob(job_reference, {}).get();
+  EXPECT_THAT(result, IsOk());
+}
+
+TEST_F(ConnectionImplTest, InsertJobAwaitPollForDone) {
+  std::string const project_id = "my-project";
+  std::string const job_id = "my_job";
+
+  EXPECT_CALL(*mock_job_connection_, GetJob)
+      .WillOnce([&](google::cloud::bigquery::v2::GetJobRequest const& request) {
+        EXPECT_THAT(request.project_id(), Eq(project_id));
+        EXPECT_THAT(request.job_id(), Eq(job_id));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id(project_id);
+        job.mutable_job_reference()->set_job_id(job_id);
+        job.mutable_status()->set_state("PENDING");
+        return job;
+      });
+
+  EXPECT_CALL(*mock_job_stub_, GetJob)
+      .WillOnce([&](rest_internal::RestContext&, google::cloud::Options const&,
+                    google::cloud::bigquery::v2::GetJobRequest const& request)
+                    -> StatusOr<google::cloud::bigquery::v2::Job> {
+        EXPECT_THAT(request.project_id(), Eq(project_id));
+        EXPECT_THAT(request.job_id(), Eq(job_id));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id(project_id);
+        job.mutable_job_reference()->set_job_id(job_id);
+        job.mutable_status()->set_state("PENDING");
+        return job;
+      })
+      .WillOnce([&](rest_internal::RestContext&, google::cloud::Options const&,
+                    google::cloud::bigquery::v2::GetJobRequest const& request)
+                    -> StatusOr<google::cloud::bigquery::v2::Job> {
+        EXPECT_THAT(request.project_id(), Eq(project_id));
+        EXPECT_THAT(request.job_id(), Eq(job_id));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id(project_id);
+        job.mutable_job_reference()->set_job_id(job_id);
+        job.mutable_status()->set_state("PENDING");
+        return job;
+      })
+      .WillOnce([&](rest_internal::RestContext&, google::cloud::Options const&,
+                    google::cloud::bigquery::v2::GetJobRequest const& request)
+                    -> StatusOr<google::cloud::bigquery::v2::Job> {
+        EXPECT_THAT(request.project_id(), Eq(project_id));
+        EXPECT_THAT(request.job_id(), Eq(job_id));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id(project_id);
+        job.mutable_job_reference()->set_job_id(job_id);
+        job.mutable_status()->set_state("DONE");
+        return job;
+      });
+
+  auto bigquery_unified_options = SetQuickPollingOptions({});
+
+  auto unified_background = std::make_unique<
+      rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
+  auto connection_impl = ConnectionImpl(
+      mock_read_connection_, mock_job_connection_, {}, {}, mock_job_stub_,
+      std::move(unified_background), DefaultOptions(bigquery_unified_options));
+
+  google::cloud::bigquery::v2::JobReference job_reference;
+  job_reference.set_project_id(project_id);
+  job_reference.set_job_id(job_id);
+  auto result = connection_impl.InsertJob(job_reference, {}).get();
+  EXPECT_THAT(result, IsOk());
+}
+
+TEST_F(ConnectionImplTest, InsertJobAwaitPollDeadlineExceeded) {
+  std::string const project_id = "my-project";
+  std::string const job_id = "my_job";
+
+  EXPECT_CALL(*mock_job_connection_, GetJob)
+      .WillOnce([&](google::cloud::bigquery::v2::GetJobRequest const& request) {
+        EXPECT_THAT(request.project_id(), Eq(project_id));
+        EXPECT_THAT(request.job_id(), Eq(job_id));
+        google::cloud::bigquery::v2::Job job;
+        job.mutable_job_reference()->set_project_id(project_id);
+        job.mutable_job_reference()->set_job_id(job_id);
+        job.mutable_status()->set_state("PENDING");
+        return job;
+      });
+
+  EXPECT_CALL(*mock_job_stub_, GetJob)
+      .WillRepeatedly(
+          [&](rest_internal::RestContext&, google::cloud::Options const&,
+              google::cloud::bigquery::v2::GetJobRequest const& request)
+              -> StatusOr<google::cloud::bigquery::v2::Job> {
+            EXPECT_THAT(request.project_id(), Eq(project_id));
+            EXPECT_THAT(request.job_id(), Eq(job_id));
+            google::cloud::bigquery::v2::Job job;
+            job.mutable_job_reference()->set_project_id(project_id);
+            job.mutable_job_reference()->set_job_id(job_id);
+            job.mutable_status()->set_state("PENDING");
+            return job;
+          });
+
+  auto bigquery_unified_options = SetQuickPollingOptions({});
+
+  auto unified_background = std::make_unique<
+      rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
+  auto connection_impl = ConnectionImpl(
+      mock_read_connection_, mock_job_connection_, {}, {}, mock_job_stub_,
+      std::move(unified_background), DefaultOptions(bigquery_unified_options));
+
+  google::cloud::bigquery::v2::JobReference job_reference;
+  job_reference.set_project_id(project_id);
+  job_reference.set_job_id(job_id);
+  auto result = connection_impl.InsertJob(job_reference, {}).get();
+  EXPECT_THAT(result, StatusIs(StatusCode::kDeadlineExceeded));
 }
 
 }  // namespace
