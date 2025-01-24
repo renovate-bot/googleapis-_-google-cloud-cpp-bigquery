@@ -317,6 +317,9 @@ TEST_F(ConnectionImplTest, InsertJobNoAwait) {
   EXPECT_CALL(*mock_job_connection_, InsertJob)
       .WillOnce(
           [&](google::cloud::bigquery::v2::InsertJobRequest const& request) {
+            EXPECT_THAT(request.job().job_reference().project_id(),
+                        Eq(project_id));
+            EXPECT_THAT(request.job().job_reference().job_id(), Eq(job_id));
             google::cloud::bigquery::v2::Job job;
             job.mutable_job_reference()->set_project_id(project_id);
             job.mutable_job_reference()->set_job_id(job_id);
@@ -328,6 +331,8 @@ TEST_F(ConnectionImplTest, InsertJobNoAwait) {
                      mock_job_stub_, std::move(mock_background_), {});
 
   google::cloud::bigquery::v2::Job job;
+  job.mutable_job_reference()->set_project_id(project_id);
+  job.mutable_job_reference()->set_job_id(job_id);
   auto result = connection_impl.InsertJob(NoAwaitTag{}, job, {});
   ASSERT_STATUS_OK(result);
   EXPECT_THAT(result->project_id(), Eq(project_id));
