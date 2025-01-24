@@ -30,6 +30,14 @@ std::string TableReferenceFullName(
                       table_reference.table_id());
 }
 
+std::string DetermineBillingProject(
+    Options const& options, std::string const& default_billing_project) {
+  if (options.has<bigquery_unified::BillingProjectOption>()) {
+    return options.get<bigquery_unified::BillingProjectOption>();
+  }
+  return default_billing_project;
+}
+
 }  // namespace
 
 Client::Client(std::shared_ptr<Connection> connection, Options opts)
@@ -102,38 +110,79 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> Client::InsertJob(
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::Job const& job, Options opts) {
-  return internal::UnimplementedError("not implemented");
+  auto current_options = internal::MergeOptions(std::move(opts), options_);
+  auto const& job_reference = job.job_reference();
+  auto billing_project =
+      DetermineBillingProject(current_options, job_reference.project_id());
+
+  if (job.configuration().job_type() == "QUERY") {
+    return ReadArrowHelper(job.configuration().query().destination_table(),
+                           std::move(billing_project),
+                           std::move(current_options));
+  } else if (job.configuration().job_type() == "COPY") {
+    return ReadArrowHelper(job.configuration().copy().destination_table(),
+                           std::move(billing_project),
+                           std::move(current_options));
+  } else if (job.configuration().job_type() == "LOAD") {
+    return ReadArrowHelper(job.configuration().load().destination_table(),
+                           std::move(billing_project),
+                           std::move(current_options));
+  }
+  return internal::InvalidArgumentError(
+      absl::StrCat("Job: ", job_reference.job_id(),
+                   " is not a COPY, LOAD, or QUERY type job."),
+      GCP_ERROR_INFO()
+          .WithMetadata("project_id", job_reference.project_id())
+          .WithMetadata("job_id", job_reference.job_id())
+          .WithMetadata("job_type", job.configuration().job_type()));
 }
+
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
-  return internal::UnimplementedError("not implemented");
+  auto current_options = internal::MergeOptions(std::move(opts), options_);
+  google::cloud::bigquery::v2::GetJobRequest get_request;
+  get_request.set_project_id(job_reference.project_id());
+  get_request.set_job_id(job_reference.job_id());
+  auto job = connection_->GetJob(get_request, current_options);
+  if (!job.ok()) return std::move(job).status();
+  return ReadArrow(*job, current_options);
 }
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::TableReference const& table_reference,
     Options opts) {
   auto current_options = internal::MergeOptions(std::move(opts), options_);
+  auto const billing_project =
+      DetermineBillingProject(current_options, table_reference.project_id());
+  return ReadArrowHelper(table_reference, billing_project,
+                         std::move(current_options));
+}
+
+StatusOr<ReadArrowResponse> Client::ReadArrow(
+    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+        read_session_request,
+    Options opts) {
+  return connection_->ReadArrow(
+      read_session_request, internal::MergeOptions(std::move(opts), options_));
+}
+
+StatusOr<ReadArrowResponse> Client::ReadArrowHelper(
+    google::cloud::bigquery::v2::TableReference const& table_reference,
+    std::string billing_project, Options opts) {
   google::cloud::bigquery::storage::v1::CreateReadSessionRequest
       read_session_request;
-  auto const billing_project =
-      current_options.has<bigquery_unified::BillingProjectOption>()
-          ? current_options.get<bigquery_unified::BillingProjectOption>()
-          : table_reference.project_id();
-
   read_session_request.set_parent(
-      google::cloud::Project(billing_project).FullName());
+      google::cloud::Project(std::move(billing_project)).FullName());
 
-  if (current_options.has<bigquery_unified::MaxReadStreamsOption>()) {
+  if (opts.has<bigquery_unified::MaxReadStreamsOption>()) {
     read_session_request.set_max_stream_count(
-        current_options.get<bigquery_unified::MaxReadStreamsOption>());
+        opts.get<bigquery_unified::MaxReadStreamsOption>());
   }
 
-  if (current_options
-          .has<bigquery_unified::PreferredMinimumReadStreamsOption>()) {
+  if (opts.has<bigquery_unified::PreferredMinimumReadStreamsOption>()) {
     read_session_request.set_preferred_min_stream_count(
-        current_options
-            .get<bigquery_unified::PreferredMinimumReadStreamsOption>());
+        opts.get<bigquery_unified::PreferredMinimumReadStreamsOption>());
   }
 
   google::cloud::bigquery::storage::v1::ReadSession read_session;
@@ -142,15 +191,7 @@ StatusOr<ReadArrowResponse> Client::ReadArrow(
   read_session.set_table(TableReferenceFullName(table_reference));
   *read_session_request.mutable_read_session() = read_session;
 
-  return connection_->ReadArrow(read_session_request,
-                                std::move(current_options));
-}
-
-StatusOr<ReadArrowResponse> Client::ReadArrow(
-    google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
-        read_session,
-    Options opts) {
-  return internal::UnimplementedError("not implemented");
+  return ReadArrow(read_session_request, std::move(opts));
 }
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
