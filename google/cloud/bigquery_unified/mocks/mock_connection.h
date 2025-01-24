@@ -46,8 +46,7 @@ class MockConnection : public Connection {
                Options opts),
               (override));
 
-  MOCK_METHOD(future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>,
-              CancelJob,
+  MOCK_METHOD(future<StatusOr<google::cloud::bigquery::v2::Job>>, CancelJob,
               (google::cloud::bigquery::v2::JobReference const& job_reference,
                Options opts),
               (override));

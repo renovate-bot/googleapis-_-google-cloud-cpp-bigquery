@@ -46,6 +46,15 @@ class ConnectionImpl : public bigquery_unified::Connection {
       google::cloud::bigquery::v2::CancelJobRequest const& request,
       Options opts) override;
 
+  StatusOr<google::cloud::bigquery::v2::JobReference> CancelJob(
+      google::cloud::NoAwaitTag,
+      google::cloud::bigquery::v2::CancelJobRequest const& request,
+      Options opts) override;
+
+  future<StatusOr<google::cloud::bigquery::v2::Job>> CancelJob(
+      google::cloud::bigquery::v2::JobReference const& job_reference,
+      Options opts) override;
+
   StatusOr<google::cloud::bigquery::v2::Job> GetJob(
       google::cloud::bigquery::v2::GetJobRequest const& request,
       Options opts) override;

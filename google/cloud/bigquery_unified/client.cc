@@ -48,16 +48,16 @@ StatusOr<google::cloud::bigquery::v2::JobReference> Client::CancelJob(
     google::cloud::NoAwaitTag,
     google::cloud::bigquery::v2::CancelJobRequest const& request,
     Options opts) {
-  return internal::UnimplementedError("not implemented");
+  return connection_->CancelJob(
+      google::cloud::NoAwaitTag{}, request,
+      internal::MergeOptions(std::move(opts), options_));
 }
 
-future<StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>
-Client::CancelJob(
+future<StatusOr<google::cloud::bigquery::v2::Job>> Client::CancelJob(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
-  return make_ready_future<
-      StatusOr<google::cloud::bigquery::v2::JobCancelResponse>>(
-      internal::UnimplementedError("not implemented"));
+  return connection_->CancelJob(
+      job_reference, internal::MergeOptions(std::move(opts), options_));
 }
 
 StatusOr<google::cloud::bigquery::v2::Job> Client::GetJob(

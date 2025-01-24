@@ -175,6 +175,49 @@ TEST_F(JobIntegrationTest, CancelJobAwaitTest) {
   EXPECT_STATUS_OK(delete_job);
 }
 
+TEST_F(JobIntegrationTest, CancelJobNoAwaitTest) {
+  std::shared_ptr<Connection> connection = MakeConnection();
+  auto client = Client(connection);
+
+  // insert a new no-await job by making the query
+  auto job = MakeQueryJob(
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 1999 "
+      "GROUP BY name, state, year ");
+  auto options = Options{}.set<BillingProjectOption>(project_id_);
+  auto job_ref = client.InsertJob(NoAwaitTag{}, job, options);
+  ASSERT_STATUS_OK(job_ref);
+  auto job_id = job_ref->job_id();
+
+  // no-await cancel the inserted job
+  bigquery_proto::CancelJobRequest cancel_request;
+  cancel_request.set_project_id(project_id_);
+  cancel_request.set_job_id(job_id);
+  cancel_request.set_location(job_ref->location().value());
+  auto cancel_job = client.CancelJob(NoAwaitTag{}, cancel_request);
+  ASSERT_STATUS_OK(cancel_job);
+
+  // poll until the cancel job is done
+  auto poll_cancel_job = client.CancelJob(*cancel_job, options).get();
+  EXPECT_STATUS_OK(poll_cancel_job);
+
+  // get the inserted job
+  bigquery_proto::GetJobRequest get_request;
+  get_request.set_project_id(project_id_);
+  get_request.set_job_id(job_id);
+  auto get_job = client.GetJob(get_request);
+  ASSERT_STATUS_OK(get_job);
+  EXPECT_THAT(get_job->status().state(), Eq("DONE"));
+
+  // delete the inserted job
+  bigquery_proto::DeleteJobRequest delete_request;
+  delete_request.set_project_id(project_id_);
+  delete_request.set_job_id(job_id);
+  auto delete_job = client.DeleteJob(delete_request);
+  EXPECT_STATUS_OK(delete_job);
+}
+
 }  // namespace
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
 }  // namespace google::cloud::bigquery_unified
