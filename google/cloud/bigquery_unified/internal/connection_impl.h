@@ -103,6 +103,11 @@ class ConnectionImpl : public bigquery_unified::Connection {
 //   - JobServiceRetryPolicyOption
 Options ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(Options options);
 
+// Interrogates the required fields in the JobConfiguration in the supplied Job,
+// to determine the billing project.
+std::string DetermineBillingProject(
+    google::cloud::bigquery::v2::Job const& job);
+
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
     Options options);
 

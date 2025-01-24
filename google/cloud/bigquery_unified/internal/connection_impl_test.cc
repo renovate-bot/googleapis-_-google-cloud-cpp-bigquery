@@ -174,6 +174,42 @@ TEST(ApplyUnifiedPolicyOptionsToJobServicePolicyOptions,
               Eq(8675309));
 }
 
+TEST(DetermineBillingProject, UseCorrectFieldDependingOnJobType) {
+  google::cloud::bigquery::v2::Job job;
+
+  google::cloud::bigquery::v2::JobConfigurationTableCopy copy_job;
+  copy_job.mutable_destination_table()->set_project_id("my-copy-project");
+  *(job.mutable_configuration()->mutable_copy()) = copy_job;
+  job.mutable_configuration()->set_job_type("COPY");
+  EXPECT_THAT(DetermineBillingProject(job), Eq("my-copy-project"));
+
+  google::cloud::bigquery::v2::JobConfigurationExtract model_extract_job;
+  model_extract_job.mutable_source_model()->set_project_id(
+      "my-model-extract-project");
+  *(job.mutable_configuration()->mutable_extract()) = model_extract_job;
+  job.mutable_configuration()->set_job_type("EXTRACT");
+  EXPECT_THAT(DetermineBillingProject(job), Eq("my-model-extract-project"));
+
+  google::cloud::bigquery::v2::JobConfigurationExtract table_extract_job;
+  table_extract_job.mutable_source_table()->set_project_id(
+      "my-table-extract-project");
+  *(job.mutable_configuration()->mutable_extract()) = table_extract_job;
+  job.mutable_configuration()->set_job_type("EXTRACT");
+  EXPECT_THAT(DetermineBillingProject(job), Eq("my-table-extract-project"));
+
+  google::cloud::bigquery::v2::JobConfigurationLoad load_job;
+  load_job.mutable_destination_table()->set_project_id("my-load-project");
+  *(job.mutable_configuration()->mutable_load()) = load_job;
+  job.mutable_configuration()->set_job_type("LOAD");
+  EXPECT_THAT(DetermineBillingProject(job), Eq("my-load-project"));
+
+  google::cloud::bigquery::v2::JobConfigurationQuery query_job;
+  query_job.mutable_destination_table()->set_project_id("my-query-project");
+  *(job.mutable_configuration()->mutable_query()) = query_job;
+  job.mutable_configuration()->set_job_type("QUERY");
+  EXPECT_THAT(DetermineBillingProject(job), Eq("my-query-project"));
+}
+
 class MockJobServiceRestStub
     : public google::cloud::bigquerycontrol_v2_internal::JobServiceRestStub {
  public:
