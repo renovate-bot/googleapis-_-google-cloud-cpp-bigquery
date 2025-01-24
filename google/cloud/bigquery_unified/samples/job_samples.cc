@@ -179,6 +179,8 @@ void RunAll() {
     break;
   }
 
+  std::cout << "@@@@@@@@@@@@@@@@@" << job_id << std::endl;
+
   SampleBanner("bigquery-get-job");
   GetJob(client, {project_id, job_id});
 
