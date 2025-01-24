@@ -30,6 +30,14 @@ std::string TableReferenceFullName(
                       table_reference.table_id());
 }
 
+std::string DetermineBillingProject(
+    Options const& options, std::string const& default_billing_project) {
+  if (options.has<bigquery_unified::BillingProjectOption>()) {
+    return options.get<bigquery_unified::BillingProjectOption>();
+  }
+  return default_billing_project;
+}
+
 }  // namespace
 
 Client::Client(std::shared_ptr<Connection> connection, Options opts)
@@ -104,20 +112,21 @@ StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::Job const& job, Options opts) {
   auto current_options = internal::MergeOptions(std::move(opts), options_);
   auto const& job_reference = job.job_reference();
-  auto const billing_project =
-      current_options.has<bigquery_unified::BillingProjectOption>()
-          ? current_options.get<bigquery_unified::BillingProjectOption>()
-          : job_reference.project_id();
+  auto billing_project =
+      DetermineBillingProject(current_options, job_reference.project_id());
 
   if (job.configuration().job_type() == "QUERY") {
     return ReadArrowHelper(job.configuration().query().destination_table(),
-                           billing_project, std::move(current_options));
+                           std::move(billing_project),
+                           std::move(current_options));
   } else if (job.configuration().job_type() == "COPY") {
     return ReadArrowHelper(job.configuration().copy().destination_table(),
-                           billing_project, std::move(current_options));
+                           std::move(billing_project),
+                           std::move(current_options));
   } else if (job.configuration().job_type() == "LOAD") {
     return ReadArrowHelper(job.configuration().load().destination_table(),
-                           billing_project, std::move(current_options));
+                           std::move(billing_project),
+                           std::move(current_options));
   }
   return internal::InvalidArgumentError(
       absl::StrCat("Job: ", job_reference.job_id(),
@@ -132,17 +141,11 @@ StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::JobReference const& job_reference,
     Options opts) {
   auto current_options = internal::MergeOptions(std::move(opts), options_);
-  auto const billing_project =
-      current_options.has<bigquery_unified::BillingProjectOption>()
-          ? current_options.get<bigquery_unified::BillingProjectOption>()
-          : job_reference.project_id();
-
   google::cloud::bigquery::v2::GetJobRequest get_request;
   get_request.set_project_id(job_reference.project_id());
   get_request.set_job_id(job_reference.job_id());
   auto job = connection_->GetJob(get_request, current_options);
   if (!job.ok()) return std::move(job).status();
-
   return ReadArrow(*job, current_options);
 }
 
@@ -151,10 +154,7 @@ StatusOr<ReadArrowResponse> Client::ReadArrow(
     Options opts) {
   auto current_options = internal::MergeOptions(std::move(opts), options_);
   auto const billing_project =
-      current_options.has<bigquery_unified::BillingProjectOption>()
-          ? current_options.get<bigquery_unified::BillingProjectOption>()
-          : table_reference.project_id();
-
+      DetermineBillingProject(current_options, table_reference.project_id());
   return ReadArrowHelper(table_reference, billing_project,
                          std::move(current_options));
 }
