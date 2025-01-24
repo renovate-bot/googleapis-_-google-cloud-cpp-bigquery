@@ -169,21 +169,6 @@ void RunAll() {
 
   auto client = MakeSampleClient();
 
-  google::cloud::bigquery::v2::ListJobsRequest list_jobs_request;
-  list_jobs_request.set_project_id(project_id);
-  list_jobs_request.set_all_users(true);
-  std::string job_id;
-  for (auto const& j : client.ListJobs(list_jobs_request)) {
-    if (!j) throw std::move(j).status();
-    job_id = j->job_reference().job_id();
-    break;
-  }
-
-  std::cout << "@@@@@@@@@@@@@@@@@" << job_id << std::endl;
-
-  SampleBanner("bigquery-get-job");
-  GetJob(client, {project_id, job_id});
-
   SampleBanner("bigquery-insert-job");
   auto query_text =
       "SELECT name, state, year, sum(number) as total "
@@ -191,6 +176,18 @@ void RunAll() {
       "WHERE year >= 1996 "
       "GROUP BY name, state, year ";
   InsertJob(client, {project_id, query_text});
+
+  google::cloud::bigquery::v2::ListJobsRequest list_jobs_request;
+  list_jobs_request.set_project_id(project_id);
+  std::string job_id;
+  for (auto const& j : client.ListJobs(list_jobs_request)) {
+    if (!j) throw std::move(j).status();
+    job_id = j->job_reference().job_id();
+    break;
+  }
+
+  SampleBanner("bigquery-get-job");
+  GetJob(client, {project_id, job_id});
 
   // delete the jobs whose creation time > 7 days and labeled "job_samples"
   google::cloud::bigquery::v2::ListJobsRequest list_old_jobs_request;
