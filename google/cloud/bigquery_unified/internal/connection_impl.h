@@ -15,6 +15,7 @@
 #ifndef GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_INTERNAL_CONNECTION_IMPL_H
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_INTERNAL_CONNECTION_IMPL_H
 
+#include "google/cloud/bigquery/storage/v1/bigquery_read_connection.h"
 #include "google/cloud/bigquery_unified/connection.h"
 #include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/bigquerycontrol/v2/internal/job_rest_stub.h"
@@ -27,9 +28,12 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 class ConnectionImpl : public bigquery_unified::Connection {
  public:
   ConnectionImpl(
+      std::shared_ptr<
+          google::cloud::bigquery_storage_v1::BigQueryReadConnection>
+          read_connection,
       std::shared_ptr<google::cloud::bigquerycontrol_v2::JobServiceConnection>
           job_connection,
-      google::cloud::Options job_options,
+      google::cloud::Options read_options, google::cloud::Options job_options,
       std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub,
       std::unique_ptr<google::cloud::BackgroundThreads> background,
       google::cloud::Options options);
@@ -73,9 +77,16 @@ class ConnectionImpl : public bigquery_unified::Connection {
       google::cloud::bigquery::v2::ListJobsRequest request,
       Options opts) override;
 
+  StatusOr<bigquery_unified::ReadArrowResponse> ReadArrow(
+      google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
+          read_session,
+      Options opts) override;
+
  private:
+  std::shared_ptr<bigquery_storage_v1::BigQueryReadConnection> read_connection_;
   std::shared_ptr<bigquerycontrol_v2::JobServiceConnection> job_connection_;
   std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub_;
+  Options read_options_;
   Options job_options_;
   std::unique_ptr<google::cloud::BackgroundThreads> background_;
   Options options_;

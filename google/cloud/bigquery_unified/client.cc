@@ -13,12 +13,24 @@
 // limitations under the License.
 
 #include "google/cloud/bigquery_unified/client.h"
+#include "google/cloud/bigquery_unified/job_options.h"
+#include "google/cloud/bigquery_unified/read_options.h"
 #include "google/cloud/internal/make_status.h"
 #include "google/cloud/internal/pagination_range.h"
 #include "google/cloud/options.h"
+#include "google/cloud/project.h"
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
+namespace {
+std::string TableReferenceFullName(
+    google::cloud::bigquery::v2::TableReference const& table_reference) {
+  return absl::StrCat("projects/", table_reference.project_id(), "/datasets/",
+                      table_reference.dataset_id(), "/tables/",
+                      table_reference.table_id());
+}
+
+}  // namespace
 
 Client::Client(std::shared_ptr<Connection> connection, Options opts)
     : connection_(std::move(connection)),
@@ -97,10 +109,41 @@ StatusOr<ReadArrowResponse> Client::ReadArrow(
     Options opts) {
   return internal::UnimplementedError("not implemented");
 }
+
 StatusOr<ReadArrowResponse> Client::ReadArrow(
     google::cloud::bigquery::v2::TableReference const& table_reference,
     Options opts) {
-  return internal::UnimplementedError("not implemented");
+  auto current_options = internal::MergeOptions(std::move(opts), options_);
+  google::cloud::bigquery::storage::v1::CreateReadSessionRequest
+      read_session_request;
+  auto const billing_project =
+      current_options.has<bigquery_unified::BillingProjectOption>()
+          ? current_options.get<bigquery_unified::BillingProjectOption>()
+          : table_reference.project_id();
+
+  read_session_request.set_parent(
+      google::cloud::Project(billing_project).FullName());
+
+  if (current_options.has<bigquery_unified::MaxReadStreamsOption>()) {
+    read_session_request.set_max_stream_count(
+        current_options.get<bigquery_unified::MaxReadStreamsOption>());
+  }
+
+  if (current_options
+          .has<bigquery_unified::PreferredMinimumReadStreamsOption>()) {
+    read_session_request.set_preferred_min_stream_count(
+        current_options
+            .get<bigquery_unified::PreferredMinimumReadStreamsOption>());
+  }
+
+  google::cloud::bigquery::storage::v1::ReadSession read_session;
+  read_session.set_data_format(
+      google::cloud::bigquery::storage::v1::DataFormat::ARROW);
+  read_session.set_table(TableReferenceFullName(table_reference));
+  *read_session_request.mutable_read_session() = read_session;
+
+  return connection_->ReadArrow(read_session_request,
+                                std::move(current_options));
 }
 
 StatusOr<ReadArrowResponse> Client::ReadArrow(
