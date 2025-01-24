@@ -34,6 +34,28 @@ void GetJob(google::cloud::bigquery_unified::Client client,
 }
 //! [END bigquery_get_job] [bigquery-get-job]
 
+//! [START bigquery_insert_job] [bigquery-insert-job]
+void InsertJob(google::cloud::bigquery_unified::Client client,
+            std::vector<std::string> const& argv) {
+  google::cloud::bigquery::v2::JobConfigurationQuery query;
+  query.mutable_use_legacy_sql()->set_value(false);
+  query.set_query(std::move(argv[1]));
+  google::cloud::bigquery::v2::JobConfiguration config;
+  *config.mutable_query() = query;
+  config.mutable_labels()->insert({"test_suite", "job_integration_test"});
+  config.mutable_labels()->insert({"test_case", "insert_job"});
+
+  google::cloud::bigquery::v2::Job job;
+  *job.mutable_configuration() = config;
+  auto options = google::cloud::Options{}.set<google::cloud::bigquery_unified::BillingProjectOption>(argv[0]);
+  
+  auto insert_job = client.InsertJob(job, options).get();
+  if (!insert_job) throw std::move(job).status();
+  std::cout << "Job " << insert_job->job_reference().job_id() << " is inserted and its metadata is:\n"
+            << insert_job->DebugString();
+}
+//! [END bigquery_insert_job] [bigquery-insert-job]
+
 google::cloud::bigquery_unified::Client MakeSampleClient() {
   return google::cloud::bigquery_unified::Client(
       google::cloud::bigquery_unified::MakeConnection());
@@ -70,7 +92,9 @@ int RunOneCommand(std::vector<std::string> argv) {
   };
 
   CommandMap commands = {make_command_entry("bigquery-get-job", GetJob, 2,
-                                            " <project_id> <job_id>")};
+                                            " <project_id> <job_id>"),
+                         make_command_entry("bigquery-insert-job", InsertJob, 2,
+                                            " <project_id> <query_text>")};
 
   static std::string usage_msg = [&argv, &commands] {
     std::string usage;
@@ -143,6 +167,13 @@ void RunAll() {
 
   SampleBanner("bigquery-get-job");
   GetJob(client, {project_id, job_id});
+
+  SampleBanner("bigquery-insert-job");
+  auto query_text = "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 1996 "
+      "GROUP BY name, state, year ";
+  InsertJob(client, {project_id, query_text});
 }
 
 }  // namespace
