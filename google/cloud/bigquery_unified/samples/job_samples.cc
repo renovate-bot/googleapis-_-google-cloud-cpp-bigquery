@@ -17,22 +17,57 @@
 #include "google/cloud/internal/getenv.h"
 #include "google/cloud/log.h"
 #include "google/cloud/project.h"
+#include "absl/time/time.h"
 #include <iostream>
 
 namespace {
 
-//! [START bigquery_get_job] [bigquery-get-job]
 void GetJob(google::cloud::bigquery_unified::Client client,
             std::vector<std::string> const& argv) {
-  google::cloud::bigquery::v2::GetJobRequest request;
-  request.set_project_id(argv[0]);
-  request.set_job_id(argv[1]);
-  auto job = client.GetJob(request);
-  if (!job) throw std::move(job).status();
-  std::cout << "Job " << argv[1] << " exists and its metadata is:\n"
-            << job->DebugString();
+  //! [START bigquery_get_job] [bigquery-get-job]
+  [](google::cloud::bigquery_unified::Client client, std::string project_id,
+     std::string job_id) {
+    google::cloud::bigquery::v2::GetJobRequest request;
+    request.set_project_id(project_id);
+    request.set_job_id(job_id);
+    auto job = client.GetJob(request);
+    if (!job) throw std::move(job).status();
+    std::cout << "Job " << job_id << " exists and its metadata is:\n"
+              << job->DebugString();
+  }
+  //! [END bigquery_get_job] [bigquery-get-job]
+  (client, argv[0], argv[1]);
 }
-//! [END bigquery_get_job] [bigquery-get-job]
+
+void InsertJob(google::cloud::bigquery_unified::Client client,
+               std::vector<std::string> const& argv) {
+  //! [START bigquery_insert_job] [bigquery-insert-job]
+  [](google::cloud::bigquery_unified::Client client, std::string project_id,
+     std::string query_text) {
+    google::cloud::bigquery::v2::JobConfigurationQuery query;
+    query.mutable_use_legacy_sql()->set_value(false);
+    query.set_query(std::move(query_text));
+    google::cloud::bigquery::v2::JobConfiguration config;
+    *config.mutable_query() = query;
+    config.mutable_labels()->insert({"test_suite", "job_samples"});
+    config.mutable_labels()->insert({"test_case", "insert_job"});
+
+    google::cloud::bigquery::v2::Job job;
+    *job.mutable_configuration() = config;
+    auto options =
+        google::cloud::Options{}
+            .set<google::cloud::bigquery_unified::BillingProjectOption>(
+                project_id);
+
+    auto insert_job = client.InsertJob(job, options).get();
+    if (!insert_job) throw std::move(job).status();
+    std::cout << "Job " << insert_job->job_reference().job_id()
+              << " is inserted and its metadata is:\n"
+              << insert_job->DebugString();
+  }
+  //! [END bigquery_insert_job] [bigquery-insert-job]
+  (client, argv[0], argv[1]);
+}
 
 google::cloud::bigquery_unified::Client MakeSampleClient() {
   return google::cloud::bigquery_unified::Client(
@@ -70,7 +105,9 @@ int RunOneCommand(std::vector<std::string> argv) {
   };
 
   CommandMap commands = {make_command_entry("bigquery-get-job", GetJob, 2,
-                                            " <project_id> <job_id>")};
+                                            " <project_id> <job_id>"),
+                         make_command_entry("bigquery-insert-job", InsertJob, 2,
+                                            " <project_id> <query_text>")};
 
   static std::string usage_msg = [&argv, &commands] {
     std::string usage;
@@ -132,6 +169,14 @@ void RunAll() {
 
   auto client = MakeSampleClient();
 
+  SampleBanner("bigquery-insert-job");
+  auto query_text =
+      "SELECT name, state, year, sum(number) as total "
+      "FROM `bigquery-public-data.usa_names.usa_1910_2013` "
+      "WHERE year >= 1996 "
+      "GROUP BY name, state, year ";
+  InsertJob(client, {project_id, query_text});
+
   google::cloud::bigquery::v2::ListJobsRequest list_jobs_request;
   list_jobs_request.set_project_id(project_id);
   std::string job_id;
@@ -143,6 +188,31 @@ void RunAll() {
 
   SampleBanner("bigquery-get-job");
   GetJob(client, {project_id, job_id});
+
+  // delete the jobs whose creation time > 7 days and labeled "job_samples"
+  google::cloud::bigquery::v2::ListJobsRequest list_old_jobs_request;
+  list_old_jobs_request.set_project_id(project_id);
+  list_old_jobs_request.set_projection(
+      google::cloud::bigquery::v2::ListJobsRequest::FULL);
+  google::protobuf::UInt64Value t;
+  t.set_value(absl::ToUnixMillis(absl::Now() - absl::Hours(24 * 7)));
+  *list_old_jobs_request.mutable_max_creation_time() = t;
+
+  for (auto const& j : client.ListJobs(list_old_jobs_request)) {
+    if (!j) throw std::move(j).status();
+    auto const& labels = j->configuration().labels();
+    if (labels.find("test_suite") == labels.end()) continue;
+    if (labels.at("test_suite") != "job_samples") continue;
+    auto old_job_id = j->job_reference().job_id();
+
+    google::cloud::bigquery::v2::DeleteJobRequest delete_request;
+    delete_request.set_project_id(project_id);
+    delete_request.set_job_id(old_job_id);
+    auto delete_job = client.DeleteJob(delete_request);
+    if (!delete_job.ok()) {
+      std::cerr << "Failed to clean up Job " << old_job_id << ".\n";
+    }
+  }
 }
 
 }  // namespace
