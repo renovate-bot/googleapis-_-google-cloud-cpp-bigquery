@@ -83,6 +83,10 @@ class ConnectionImpl : public bigquery_unified::Connection {
       Options opts) override;
 
  private:
+  future<StatusOr<google::cloud::bigquery::v2::Job>> InsertJobPoll(
+      google::cloud::bigquery::v2::Job const& operation,
+      std::shared_ptr<Options const> const& current_options);
+
   std::shared_ptr<bigquery_storage_v1::BigQueryReadConnection> read_connection_;
   std::shared_ptr<bigquerycontrol_v2::JobServiceConnection> job_connection_;
   std::shared_ptr<bigquerycontrol_v2_internal::JobServiceRestStub> job_stub_;
