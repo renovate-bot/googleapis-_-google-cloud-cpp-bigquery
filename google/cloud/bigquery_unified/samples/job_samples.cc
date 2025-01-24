@@ -210,7 +210,11 @@ void RunAll() {
     delete_request.set_project_id(project_id);
     delete_request.set_job_id(old_job_id);
     auto delete_job = client.DeleteJob(delete_request);
-    std::cout << "Job " << old_job_id << " is cleaned up.\n";
+    if (!delete_job.ok()) {
+      std::cout << "Failed to clean up Job " << old_job_id << ".\n";
+    } else {
+      std::cout << "Job " << old_job_id << " is cleaned up.\n";
+    }
   }
 }
 
