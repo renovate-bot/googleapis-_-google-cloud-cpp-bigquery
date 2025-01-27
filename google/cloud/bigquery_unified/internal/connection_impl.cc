@@ -314,6 +314,25 @@ ConnectionImpl::InsertJobPoll(
       });
 }
 
+std::string DetermineBillingProject(
+    google::cloud::bigquery::v2::Job const& job) {
+  if (job.configuration().job_type() == "QUERY") {
+    return job.configuration().query().destination_table().project_id();
+  } else if (job.configuration().job_type() == "COPY") {
+    return job.configuration().copy().destination_table().project_id();
+  } else if (job.configuration().job_type() == "LOAD") {
+    return job.configuration().load().destination_table().project_id();
+  } else if (job.configuration().job_type() == "EXTRACT") {
+    if (job.configuration().extract().has_source_table()) {
+      return job.configuration().extract().source_table().project_id();
+    }
+    if (job.configuration().extract().has_source_model()) {
+      return job.configuration().extract().source_model().project_id();
+    }
+  }
+  return "";
+}
+
 future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
     google::cloud::bigquery::v2::Job const& job, Options opts) {
   // TODO: Instead of creating an OptionsSpan, pass opts when job_connection_
@@ -325,7 +344,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
   auto const billing_project =
       current_options->has<bigquery_unified::BillingProjectOption>()
           ? current_options->get<bigquery_unified::BillingProjectOption>()
-          : "";
+          : DetermineBillingProject(job);
 
   insert_request.set_project_id(billing_project);
   *insert_request.mutable_job() = job;
@@ -351,7 +370,7 @@ StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::InsertJob(
   auto const billing_project =
       current_options->has<bigquery_unified::BillingProjectOption>()
           ? current_options->get<bigquery_unified::BillingProjectOption>()
-          : "";
+          : DetermineBillingProject(job);
 
   insert_request.set_project_id(billing_project);
   *insert_request.mutable_job() = job;
