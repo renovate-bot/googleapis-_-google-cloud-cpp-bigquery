@@ -69,6 +69,23 @@ void InsertJob(google::cloud::bigquery_unified::Client client,
   (client, argv[0], argv[1]);
 }
 
+void CancelJob(google::cloud::bigquery_unified::Client client,
+               std::vector<std::string> const& argv) {
+  //! [START bigquery_cancel_job] [bigquery-cancel-job]
+  [](google::cloud::bigquery_unified::Client client, std::string project_id,
+     std::string job_id, std::string job_location) {
+    google::cloud::bigquery::v2::CancelJobRequest cancel_request;
+    cancel_request.set_project_id(project_id);
+    cancel_request.set_job_id(job_id);
+    cancel_request.set_location(job_location);
+    auto cancel_job = client.CancelJob(cancel_request).get();
+    if (!cancel_job) throw std::move(cancel_job).status();
+    std::cout << "Job " << job_id << " is cancelled.\n";
+  }
+  //! [END bigquery_cancel_job] [bigquery-cancel-job]
+  (client, argv[0], argv[1], argv[2]);
+}
+
 void ListJobs(google::cloud::bigquery_unified::Client client,
               std::vector<std::string> const& argv) {
   //! [START bigquery_list_jobs] [bigquery-list-jobs]
@@ -141,6 +158,8 @@ int RunOneCommand(std::vector<std::string> argv) {
   CommandMap commands = {
       make_command_entry("bigquery-get-job", GetJob, 2,
                          " <project_id> <job_id>"),
+      make_command_entry("bigquery-cancel-job", CancelJob, 3,
+                         " <project_id> <job_id> <job_location>"),
       make_command_entry("bigquery-insert-job", InsertJob, 2,
                          " <project_id> <query_text>"),
       make_command_entry("bigquery-list-jobs", ListJobs, 1, " <project_id>"),
@@ -218,14 +237,19 @@ void RunAll() {
   google::cloud::bigquery::v2::ListJobsRequest list_jobs_request;
   list_jobs_request.set_project_id(project_id);
   std::string job_id;
+  std::string job_location;
   for (auto const& j : client.ListJobs(list_jobs_request)) {
     if (!j) throw std::move(j).status();
     job_id = j->job_reference().job_id();
+    job_location = j->job_reference().location().value();
     break;
   }
 
   SampleBanner("bigquery-get-job");
   GetJob(client, {project_id, job_id});
+
+  SampleBanner("bigquery-cancel-job");
+  CancelJob(client, {project_id, job_id, job_location});
 
   SampleBanner("bigquery-list-jobs");
   ListJobs(client, {project_id});
