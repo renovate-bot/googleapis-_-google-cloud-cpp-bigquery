@@ -105,8 +105,10 @@ class Connection {
  *
  * - `google::cloud::CommonOptionList`
  * - `google::cloud::GrpcOptionList`
+ * - `google::cloud::RestOptionList`
  * - `google::cloud::UnifiedCredentialsOptionList`
- * // TODO: figure out other acceptable OptionLists
+ * - `google::cloud::bigquery_unified::BigQueryJobOptionList`
+ * - `google::cloud::bigquery_unified::BigQueryReadOptionList`
  *
  * @note Unexpected options will be ignored. To log unexpected options instead,
  *     set `GOOGLE_CLOUD_CPP_ENABLE_CLOG=yes` in the environment.

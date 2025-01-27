@@ -142,6 +142,7 @@ set(bigquery_unified_library_files
     internal/connection_impl.h
     internal/default_options.cc
     internal/default_options.h
+    internal/retry_traits.h
     job_options.h
     read_arrow_response.h
     read_options.h

@@ -16,21 +16,10 @@
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_RETRY_POLICY_H
 
 #include "google/cloud/bigquery_unified/version.h"
-#include "google/cloud/internal/retry_policy_impl.h"
+#include "google/cloud/bigquery_unified/internal/retry_traits.h"
 #include "google/cloud/retry_policy.h"
 #include "google/cloud/status_or.h"
 #include <memory>
-
-namespace google::cloud::bigquery_unified_internal {
-GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
-struct RetryTraits {
-  static bool IsPermanentFailure(google::cloud::Status const& status) {
-    return status.code() != StatusCode::kOk &&
-           status.code() != StatusCode::kUnavailable;
-  }
-};
-GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
-}  // namespace google::cloud::bigquery_unified_internal
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN

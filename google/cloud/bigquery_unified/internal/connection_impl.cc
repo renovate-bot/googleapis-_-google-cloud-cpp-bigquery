@@ -496,6 +496,13 @@ Options ApplyUnifiedPolicyOptionsToJobServicePolicyOptions(Options options) {
 
 std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
     Options options) {
+  internal::CheckExpectedOptions<
+      CommonOptionList, GrpcOptionList, google::cloud::RestOptionList,
+      UnifiedCredentialsOptionList,
+      google::cloud::bigquery_unified::BigQueryJobOptionList,
+      google::cloud::bigquery_unified::BigQueryReadOptionList>(options,
+                                                               __func__);
+
   auto background = std::make_unique<
       rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
 

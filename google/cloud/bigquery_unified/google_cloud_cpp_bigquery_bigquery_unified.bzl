@@ -24,6 +24,7 @@ google_cloud_cpp_bigquery_bigquery_unified_hdrs = [
     "internal/async_rest_long_running_operation_custom.h",
     "internal/connection_impl.h",
     "internal/default_options.h",
+    "internal/retry_traits.h",
     "job_options.h",
     "read_arrow_response.h",
     "read_options.h",
