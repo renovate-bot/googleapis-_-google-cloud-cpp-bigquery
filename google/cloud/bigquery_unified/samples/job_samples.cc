@@ -60,12 +60,46 @@ void InsertJob(google::cloud::bigquery_unified::Client client,
                 project_id);
 
     auto insert_job = client.InsertJob(job, options).get();
-    if (!insert_job) throw std::move(job).status();
+    if (!insert_job) throw std::move(insert_job).status();
     std::cout << "Job " << insert_job->job_reference().job_id()
               << " is inserted and its metadata is:\n"
               << insert_job->DebugString();
   }
   //! [END bigquery_insert_job] [bigquery-insert-job]
+  (client, argv[0], argv[1]);
+}
+
+void ListJobs(google::cloud::bigquery_unified::Client client,
+              std::vector<std::string> const& argv) {
+  //! [START bigquery_list_jobs] [bigquery-list-jobs]
+  [](google::cloud::bigquery_unified::Client client, std::string project_id) {
+    google::cloud::bigquery::v2::ListJobsRequest request;
+    request.set_project_id(project_id);
+    auto list_jobs = client.ListJobs(request);
+    int count = 0;
+    for (auto const& job : list_jobs) {
+      if (!job) throw std::move(job).status();
+      count += 1;
+    }
+    std::cout << count << " jobs are returned by ListJobs.\n";
+  }
+  //! [END bigquery_list_jobs] [bigquery-list-jobs]
+  (client, argv[0]);
+}
+
+void DeleteJob(google::cloud::bigquery_unified::Client client,
+               std::vector<std::string> const& argv) {
+  //! [START bigquery_delete_job] [bigquery-delete-job]
+  [](google::cloud::bigquery_unified::Client client, std::string project_id,
+     std::string job_id) {
+    google::cloud::bigquery::v2::DeleteJobRequest delete_request;
+    delete_request.set_project_id(project_id);
+    delete_request.set_job_id(job_id);
+    auto delete_job = client.DeleteJob(delete_request);
+    if (!delete_job.ok()) throw std::move(delete_job);
+    std::cout << "Job " << job_id << " is deleted.\n";
+  }
+  //! [END bigquery_delete_job] [bigquery-delete-job]
   (client, argv[0], argv[1]);
 }
 
@@ -104,10 +138,14 @@ int RunOneCommand(std::vector<std::string> argv) {
         sample_name, make_command(sample_name, sample, argc, usage));
   };
 
-  CommandMap commands = {make_command_entry("bigquery-get-job", GetJob, 2,
-                                            " <project_id> <job_id>"),
-                         make_command_entry("bigquery-insert-job", InsertJob, 2,
-                                            " <project_id> <query_text>")};
+  CommandMap commands = {
+      make_command_entry("bigquery-get-job", GetJob, 2,
+                         " <project_id> <job_id>"),
+      make_command_entry("bigquery-insert-job", InsertJob, 2,
+                         " <project_id> <query_text>"),
+      make_command_entry("bigquery-list-jobs", ListJobs, 1, " <project_id>"),
+      make_command_entry("bigquery-delete-job", DeleteJob, 2,
+                         " <project_id> <job_id>")};
 
   static std::string usage_msg = [&argv, &commands] {
     std::string usage;
@@ -188,6 +226,12 @@ void RunAll() {
 
   SampleBanner("bigquery-get-job");
   GetJob(client, {project_id, job_id});
+
+  SampleBanner("bigquery-list-jobs");
+  ListJobs(client, {project_id});
+
+  SampleBanner("bigquery-delete-job");
+  DeleteJob(client, {project_id, job_id});
 
   // delete the jobs whose creation time > 7 days and labeled "job_samples"
   google::cloud::bigquery::v2::ListJobsRequest list_old_jobs_request;
