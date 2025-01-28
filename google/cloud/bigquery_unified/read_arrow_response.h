@@ -25,15 +25,39 @@
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
-// ReadRowsResponse.StreamStats, ReadRowsResponse.ThrottleState, and
-// ReadRowsResponse.uncompressed_byte_size are not made available. If there is
-// demand for these, we can look at adding mechanisms to retrieve those.
+/**
+ *  Contains data and metadata from a successful `ReadArrow` call.
+ */
 struct ReadArrowResponse {
-  std::int64_t estimated_total_bytes;
+  /// An estimate on the number of bytes this session will scan when
+  /// all streams are completely consumed. This estimate is based on
+  /// metadata from the table which might be incomplete or stale.
+  std::int64_t estimated_total_bytes_scanned;
+
+  /// A pre-projected estimate of the total physical size of files
+  /// (in bytes) that this session will scan when all streams are consumed. This
+  /// estimate is independent of the selected columns and can be based on
+  /// incomplete or stale metadata from the table.  This field is only set for
+  /// BigLake tables.
   std::int64_t estimated_total_physical_file_size;
+
+  /// An estimate on the number of rows present in this session's
+  /// streams. This estimate is based on metadata from the table which might be
+  /// incomplete or stale.
   std::int64_t estimated_row_count;
+
+  /// Time at which the session becomes invalid. After this time,
+  /// subsequent requests to read from this session will return errors. The
+  /// expire_time is automatically assigned and currently cannot be specified or
+  /// updated.
   google::protobuf::Timestamp expire_time;
+
+  /// The schema for the read. If read_options.selected_fields is set, the
+  /// schema may be different from the table schema as it will only contain
+  /// the selected fields.
   std::shared_ptr<arrow::Schema> schema;
+
+  /// Contains one or more StreamRanges from which the data can be read.
   std::vector<StreamRange<std::shared_ptr<arrow::RecordBatch>>> readers;
 };
 
