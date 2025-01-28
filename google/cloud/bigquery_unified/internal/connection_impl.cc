@@ -331,7 +331,7 @@ StatusOr<bigquery_unified::ReadArrowResponse> ConnectionImpl::ReadArrow(
   bigquery_unified::ReadArrowResponse read_response;
   auto arrow_schema = GetArrowSchema(session->arrow_schema());
   if (!arrow_schema) return std::move(arrow_schema).status();
-  read_response.estimated_total_bytes =
+  read_response.estimated_total_bytes_scanned =
       session->estimated_total_bytes_scanned();
   read_response.estimated_total_physical_file_size =
       session->estimated_total_physical_file_size();
