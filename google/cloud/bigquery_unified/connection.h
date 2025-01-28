@@ -110,6 +110,11 @@ class Connection {
  * - `google::cloud::bigquery_unified::BigQueryJobOptionList`
  * - `google::cloud::bigquery_unified::BigQueryReadOptionList`
  *
+ * Additionally, options from the component services can be specified for more
+ * fine grained control:
+ *  - `google::cloud::bigquerycontrol_v2::JobServicePolicyOptionList`
+ *  - `google::cloud::bigquery_storage_v1::BigQueryReadPolicyOptionList`
+ *
  * @note Unexpected options will be ignored. To log unexpected options instead,
  *     set `GOOGLE_CLOUD_CPP_ENABLE_CLOG=yes` in the environment.
  *

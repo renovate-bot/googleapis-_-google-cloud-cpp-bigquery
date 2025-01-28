@@ -500,8 +500,10 @@ std::shared_ptr<bigquery_unified::Connection> MakeDefaultConnectionImpl(
       CommonOptionList, GrpcOptionList, google::cloud::RestOptionList,
       UnifiedCredentialsOptionList,
       google::cloud::bigquery_unified::BigQueryJobOptionList,
-      google::cloud::bigquery_unified::BigQueryReadOptionList>(options,
-                                                               __func__);
+      google::cloud::bigquery_unified::BigQueryReadOptionList,
+      google::cloud::bigquerycontrol_v2::JobServicePolicyOptionList,
+      google::cloud::bigquery_storage_v1::BigQueryReadPolicyOptionList>(
+      options, __func__);
 
   auto background = std::make_unique<
       rest_internal::AutomaticallyCreatedRestBackgroundThreads>();
