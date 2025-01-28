@@ -15,8 +15,8 @@
 #ifndef GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_RETRY_POLICY_H
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_RETRY_POLICY_H
 
-#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/bigquery_unified/internal/retry_traits.h"
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/retry_policy.h"
 #include "google/cloud/status_or.h"
 #include <memory>

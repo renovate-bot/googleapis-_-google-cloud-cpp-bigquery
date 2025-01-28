@@ -24,7 +24,7 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
 /**
  *  Use with `google::cloud::Options` to configure the maximum read streams.
- *   
+ *
  *  Max initial number of streams. If unset or zero, the server will
  *  provide a value of streams as to produce reasonable throughput. Must be
  *  non-negative. The number of streams may be lower than the requested number,
@@ -35,7 +35,7 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
  *  Typically, clients should either leave this unset to let the system
  *  determine an upper bound OR set this a size for the maximum "units of work"
  *  it can gracefully handle.
- *  
+ *
  *  @ingroup google-cloud-bigquery-unified-options
  */
 struct MaxReadStreamsOption {
@@ -51,7 +51,7 @@ struct MaxReadStreamsOption {
  *  This is typically a target parallelism of the client (e.g. a Spark
  *  cluster with N-workers would set this to a low multiple of N to ensure
  *  good cluster utilization).
- *  
+ *
  *  The system will make a best effort to provide at least this number of
  *  streams, but in some cases might provide less.
  *
