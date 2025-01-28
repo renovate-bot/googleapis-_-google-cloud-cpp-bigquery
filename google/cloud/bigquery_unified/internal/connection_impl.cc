@@ -100,56 +100,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::CancelJob(
         StatusOr<google::cloud::bigquery::v2::Job>(cancel_response.status()));
   }
 
-  return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
-      google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
-      google::cloud::bigquery::v2::GetJobRequest,
-      google::cloud::bigquery::v2::CancelJobRequest>(
-      background_->cq(), current_options, cancel_response->job(),
-      [stub = job_stub_](
-          CompletionQueue& cq,
-          std::unique_ptr<rest_internal::RestContext> context,
-          google::cloud::internal::ImmutableOptions options,
-          google::cloud::bigquery::v2::GetJobRequest const& request)
-          -> future<StatusOr<google::cloud::bigquery::v2::Job>> {
-        return make_ready_future(
-            stub->GetJob(*std::move(context), *std::move(options), request));
-      },
-      [stub = job_stub_](
-          CompletionQueue& cq,
-          std::unique_ptr<rest_internal::RestContext> context,
-          google::cloud::internal::ImmutableOptions options,
-          google::cloud::bigquery::v2::CancelJobRequest const& request)
-          -> future<Status> {
-        auto cancel_response =
-            stub->CancelJob(*std::move(context), *std::move(options), request);
-        if (!cancel_response) {
-          return make_ready_future(std::move(cancel_response).status());
-        }
-        return make_ready_future(Status{});
-      },
-      [](StatusOr<google::cloud::bigquery::v2::Job> op, std::string const&) {
-        return op;
-      },
-      polling_policy(*current_options), __func__,
-      [](google::cloud::bigquery::v2::Job const& op) {
-        return op.status().state() == "DONE";
-      },
-      [ref = cancel_response->job().job_reference()](
-          std::string const&, google::cloud::bigquery::v2::GetJobRequest& r) {
-        r.set_project_id(ref.project_id());
-        r.set_job_id(ref.job_id());
-        r.set_location(ref.location().value());
-      },
-      [ref = cancel_response->job().job_reference()](
-          std::string const&,
-          google::cloud::bigquery::v2::CancelJobRequest& r) {
-        r.set_project_id(ref.project_id());
-        r.set_job_id(ref.job_id());
-        r.set_location(ref.location().value());
-      },
-      [](StatusOr<google::cloud::bigquery::v2::Job> const&) {
-        return std::string{"CancelJob"};
-      });
+  return JobPoll(cancel_response->job(), current_options, "CancelJob");
 }
 
 StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::CancelJob(
@@ -188,55 +139,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::CancelJob(
         StatusOr<google::cloud::bigquery::v2::Job>(get_job_response.status()));
   }
 
-  return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
-      google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
-      google::cloud::bigquery::v2::GetJobRequest,
-      google::cloud::bigquery::v2::CancelJobRequest>(
-      background_->cq(), current_options, *get_job_response,
-      [stub = job_stub_](
-          CompletionQueue& cq,
-          std::unique_ptr<rest_internal::RestContext> context,
-          google::cloud::internal::ImmutableOptions options,
-          google::cloud::bigquery::v2::GetJobRequest const& request)
-          -> future<StatusOr<google::cloud::bigquery::v2::Job>> {
-        return make_ready_future(
-            stub->GetJob(*std::move(context), *std::move(options), request));
-      },
-      [stub = job_stub_](
-          CompletionQueue& cq,
-          std::unique_ptr<rest_internal::RestContext> context,
-          google::cloud::internal::ImmutableOptions options,
-          google::cloud::bigquery::v2::CancelJobRequest const& request)
-          -> future<Status> {
-        auto cancel_response =
-            stub->CancelJob(*std::move(context), *std::move(options), request);
-        if (!cancel_response) {
-          return make_ready_future(std::move(cancel_response).status());
-        }
-        return make_ready_future(Status{});
-      },
-      [](StatusOr<google::cloud::bigquery::v2::Job> op, std::string const&) {
-        return op;
-      },
-      polling_policy(*current_options), __func__,
-      [](google::cloud::bigquery::v2::Job const& op) {
-        return op.status().state() == "DONE";
-      },
-      [ref = job_reference](std::string const&,
-                            google::cloud::bigquery::v2::GetJobRequest& r) {
-        r.set_project_id(ref.project_id());
-        r.set_job_id(ref.job_id());
-        r.set_location(ref.location().value());
-      },
-      [ref = job_reference](std::string const&,
-                            google::cloud::bigquery::v2::CancelJobRequest& r) {
-        r.set_project_id(ref.project_id());
-        r.set_job_id(ref.job_id());
-        r.set_location(ref.location().value());
-      },
-      [](StatusOr<google::cloud::bigquery::v2::Job> const&) {
-        return std::string{"CancelJob"};
-      });
+  return JobPoll(*get_job_response, current_options, "CancelJob");
 }
 
 Status ConnectionImpl::DeleteJob(
@@ -258,10 +161,10 @@ StatusOr<google::cloud::bigquery::v2::Job> ConnectionImpl::GetJob(
   return job_connection_->GetJob(request);
 }
 
-future<StatusOr<google::cloud::bigquery::v2::Job>>
-ConnectionImpl::InsertJobPoll(
+future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::JobPoll(
     google::cloud::bigquery::v2::Job const& operation,
-    std::shared_ptr<Options const> const& current_options) {
+    std::shared_ptr<Options const> const& current_options,
+    std::string operation_name) {
   return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
       google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
       google::cloud::bigquery::v2::GetJobRequest,
@@ -309,8 +212,9 @@ ConnectionImpl::InsertJobPoll(
         r.set_job_id(ref.job_id());
         r.set_location(ref.location().value());
       },
-      [](StatusOr<google::cloud::bigquery::v2::Job> const&) {
-        return std::string{"InsertJob"};
+      [op_name = std::move(operation_name)](
+          StatusOr<google::cloud::bigquery::v2::Job> const&) {
+        return op_name;
       });
 }
 
@@ -355,7 +259,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
         StatusOr<google::cloud::bigquery::v2::Job>(insert_response.status()));
   }
 
-  return InsertJobPoll(*insert_response, current_options);
+  return JobPoll(*insert_response, current_options, "InsertJob");
 }
 
 StatusOr<google::cloud::bigquery::v2::JobReference> ConnectionImpl::InsertJob(
@@ -398,7 +302,7 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::InsertJob(
         StatusOr<google::cloud::bigquery::v2::Job>(get_job_response.status()));
   }
 
-  return InsertJobPoll(*get_job_response, current_options);
+  return JobPoll(*get_job_response, current_options, "InsertJob");
 }
 
 StreamRange<google::cloud::bigquery::v2::ListFormatJob>
