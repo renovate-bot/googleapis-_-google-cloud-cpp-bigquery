@@ -26,25 +26,54 @@
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
+/**
+ * Use with `google::cloud::Options` to configure the backoff policy.
+ *
+ * @ingroup google-cloud-bigquery-unified-options
+ */
 struct BackoffPolicyOption {
   using Type = std::shared_ptr<BackoffPolicy>;
 };
 
+/**
+ * Use with `google::cloud::Options` to specify the billing project.
+ *
+ * @ingroup google-cloud-bigquery-unified-options
+ */
 struct BillingProjectOption {
   using Type = std::string;
 };
 
+/**
+ * Use with `google::cloud::Options` to configure which operations are retried.
+ *
+ * @ingroup google-cloud-bigquery-unified-options
+ */
 struct IdempotencyPolicyOption {
   using Type = std::shared_ptr<bigquery_unified::IdempotencyPolicy>;
 };
 
+/**
+ * Use with `google::cloud::Options` to configure the polling policy.
+ *
+ * @ingroup google-cloud-bigquery-unified-options
+ */
 struct PollingPolicyOption {
   using Type = std::shared_ptr<PollingPolicy>;
 };
 
+/**
+ * Use with `google::cloud::Options` to configure the retry policy.
+ *
+ * @ingroup google-cloud-bigquery-unified-options
+ */
 struct RetryPolicyOption {
   using Type = std::shared_ptr<bigquery_unified::RetryPolicy>;
 };
+
+using BigQueryJobOptionList =
+    OptionList<BackoffPolicyOption, BillingProjectOption,
+               IdempotencyPolicyOption, PollingPolicyOption, RetryPolicyOption>;
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
 }  // namespace google::cloud::bigquery_unified

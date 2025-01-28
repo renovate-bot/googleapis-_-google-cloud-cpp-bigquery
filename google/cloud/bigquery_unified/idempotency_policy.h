@@ -28,7 +28,6 @@ class IdempotencyPolicy {
  public:
   virtual ~IdempotencyPolicy() = default;
 
-  /// Create a new copy of this object.
   virtual std::unique_ptr<IdempotencyPolicy> clone() const;
 
   virtual google::cloud::Idempotency CancelJob(
