@@ -164,7 +164,7 @@ StatusOr<google::cloud::bigquery::v2::Job> ConnectionImpl::GetJob(
 future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::JobPoll(
     google::cloud::bigquery::v2::Job const& operation,
     std::shared_ptr<Options const> const& current_options,
-    std::string const& operation_name) {
+    std::string operation_name) {
   return bigquery_unified_internal::AsyncRestAwaitLongRunningOperation<
       google::cloud::bigquery::v2::Job, google::cloud::bigquery::v2::Job,
       google::cloud::bigquery::v2::GetJobRequest,
@@ -212,8 +212,9 @@ future<StatusOr<google::cloud::bigquery::v2::Job>> ConnectionImpl::JobPoll(
         r.set_job_id(ref.job_id());
         r.set_location(ref.location().value());
       },
-      [operation_name](StatusOr<google::cloud::bigquery::v2::Job> const&) {
-        return operation_name;
+      [op_name = std::move(operation_name)](
+          StatusOr<google::cloud::bigquery::v2::Job> const&) {
+        return op_name;
       });
 }
 
