@@ -14,7 +14,7 @@
 # limitations under the License.
 # ~~~
 
-cmake_minimum_required(VERSION 3.13...3.24)
+cmake_minimum_required(VERSION 3.16...3.31)
 set(CMAKE_CXX_STANDARD 17)
 
 # Define the project name and where to report bugs.
@@ -22,7 +22,7 @@ set(PACKAGE_BUGREPORT
     "https://github.com/googleapis/google-cloud-cpp-bigquery/issues")
 project(
     google-cloud-cpp-bigquery
-    VERSION 0.0.0
+    VERSION 0.1.0
     LANGUAGES CXX)
 set(PROJECT_VERSION_PRE_RELEASE "rc")
 

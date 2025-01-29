@@ -77,26 +77,6 @@ scope of this document, but here are a few highlights:
   standard `-DBUILD_SHARED_LIBS=ON` option can be used to switch this to shared
   libraries. Having said this, on Windows there are [known issues][issues-5489]
   with DLLs and generated protos.
-- With the default configuration, our CMake scripts will only compile a small
-  subset of the libraries. As the number of libraries grows, we did not want to
-  impose longer build times on existing customers.
-  - You can use the `-DGOOGLE_CLOUD_CPP_ENABLE=...` option to configure the set
-    of libraries compiled and installed by CMake.
-  - For example, passing `-DGOOGLE_CLOUD_CPP_ENABLE=storage` will only compile
-    the `storage` library. The target for this library is
-    `google-cloud-cpp-bigquery::storage`.
-  - The `google/cloud/${library}/README.md` files describe what services are
-    supported by each library.
-  - You can provide more than one library. For example,
-    `-DGOOGLE_CLOUD_CPP_ENABLE=pubsub,iam,speech` will compile the `pubsub`,
-    `iam`, and `speech` libraries.
-  - The default is to compile `bigtable`, `bigquery`, `iam`, `logging`,
-    `pubsub`, `spanner`, and `storage`.
-  - You can use `-DGOOGLE_CLOUD_CPP_ENABLE=__ga_libraries__` to compile all the
-    GA libraries.
-  - The `storage` library does not depend on `gRPC` or `Protobuf`. Customers
-    only using this library can remove the build steps to compile these
-    dependencies.
 
 For more information about `google-cloud-cpp-bigquery` configuration options, see the
 [Compile time configuration](/doc/compile-time-configuration.md) guide.
@@ -113,22 +93,18 @@ quickstart guides also cover this use-case.
 
 `google-cloud-cpp-bigquery` directly depends on the following libraries:
 
-| Library                           |   Minimum version | Description                                                |
-| --------------------------------- | ----------------: | ---------------------------------------------------------- |
-| [Abseil][abseil-gh]               | 20200923, Patch 3 | Abseil C++ common library [^1]                             |
-| [gRPC][grpc-gh]                   |            1.35.x | An RPC library and framework [^2]                          |
-| [libcurl][libcurl-gh]             |            7.47.0 | HTTP client library [^3]                                   |
-| [crc32c][crc32c-gh]               |             1.0.6 | Hardware-accelerated CRC32C implementation [^4]            |
-| [OpenSSL][openssl-gh]             |             1.0.2 | Crypto functions for [^3]                                  |
-| [nlohmann/json][nlohmann-json-gh] |             3.4.0 | JSON for Modern C++ [^3]                                   |
-| [protobuf][protobuf-gh]           |            3.15.8 | Protobuf is needed for any library based on gRPC [^5] [^6] |
-
-`google-cloud-cpp-bigquery` also has an **optional** dependency on the following
-libraries:
-
-| Library                           | Minimum version | Description                    |
-| --------------------------------- | --------------- | ------------------------------ |
-| [OpenTelemetry][opentelemetry-gh] | 1.9.1           | An observability framework[^7] |
+| Library                                 |   Minimum version | Description                                               |
+| --------------------------------------- | ----------------: | --------------------------------------------------------- |
+| [Abseil][abseil-gh]                     | 20240724, Patch 1 | Abseil C++ common library                                 |
+| [gRPC][grpc-gh]                         |            1.69.x | An RPC library and framework                              |
+| [libcurl][libcurl-gh]                   |            7.47.0 | HTTP client library                                       |
+| [crc32c][crc32c-gh]                     |             1.0.6 | Hardware-accelerated CRC32C implementation                |
+| [OpenSSL][openssl-gh]                   |             1.0.2 | Crypto functions                                          |
+| [nlohmann/json][nlohmann-json-gh]       |             3.4.0 | JSON for Modern C++                                       |
+| [protobuf][protobuf-gh]                 |            5.29.x | Protobuf is used for some RPC request and response types. |
+| [google-cloud-cpp][google-cloud-cpp-gh] |            2.34.0 | GCP C++ Client libraries.                                 |
+| [apache-arrow][apache-arrow-gh]         |            17.0.0 | BigQuery streams data using arrow::RecordBatch.           |
+| [OpenTelemetry][opentelemetry-gh]       |             1.9.1 | An observability framework.                               |
 
 Note that these libraries may also depend on other libraries. The following
 instructions include steps to install these indirect dependencies too.

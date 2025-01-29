@@ -26,8 +26,6 @@ set(GOOGLE_CLOUD_CPP_BIGQUERY_TRANSITION_LIBRARIES # cmake-format: sort
 set(GOOGLE_CLOUD_CPP_BIGQUERY_GA_LIBRARIES # cmake-format: sort
                                            "bigquery_unified")
 
-# Use a function to get a new scope, so the
-# GOOGLE_CLOUD_CPP_BIGQUERY_*_LIBRARIES remain unchanged.
 function (export_libraries_bzl)
     foreach (stage IN ITEMS EXPERIMENTAL TRANSITION GA)
         set(var "GOOGLE_CLOUD_CPP_BIGQUERY_${stage}_LIBRARIES")
