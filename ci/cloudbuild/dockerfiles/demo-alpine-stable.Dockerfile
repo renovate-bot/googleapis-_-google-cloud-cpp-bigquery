@@ -92,7 +92,7 @@ RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.g
       -DARROW_BUILD_STATIC=ON  && \
     cmake --build cmake-out --target install
 
-# #### apache-arrow
+# #### google-cloud-cpp
 WORKDIR /var/tmp/build/google-cloud-cpp
 RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
