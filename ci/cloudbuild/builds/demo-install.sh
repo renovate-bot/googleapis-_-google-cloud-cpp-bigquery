@@ -28,9 +28,6 @@ source module ci/cloudbuild/builds/lib/cmake.sh
 source module ci/cloudbuild/builds/lib/quickstart.sh
 source module ci/lib/io.sh
 
-# We cannot use `cmake --install` below. That flag was introduced
-# in CMake == 3.15, and we support CMake >= 3.13.
-
 cmake_config_testing_details=(
   -DCMAKE_INSTALL_MESSAGE=NEVER
   -DGOOGLE_CLOUD_CPP_ENABLE_CCACHE=OFF

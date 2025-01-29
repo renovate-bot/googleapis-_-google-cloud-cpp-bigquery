@@ -1,4 +1,4 @@
-# Copyright 2024 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,14 +16,13 @@ filename: ci/cloudbuild/cloudbuild.yaml
 github:
   name: google-cloud-cpp-bigquery
   owner: googleapis
-  pullRequest:
+  push:
     branch: ^main$
-    commentControl: COMMENTS_ENABLED_FOR_EXTERNAL_CONTRIBUTORS_ONLY
 includeBuildLogs: INCLUDE_BUILD_LOGS_WITH_STATUS
-name: cmake-install-pr
+name: demo-alpine-stable-ci
 substitutions:
-  _BUILD_NAME: cmake-install
-  _DISTRO: fedora-latest-cmake
-  _TRIGGER_TYPE: pr
+  _BUILD_NAME: demo-install
+  _DISTRO: demo-alpine-stable
+  _TRIGGER_TYPE: ci
 tags:
-- pr
+- ci

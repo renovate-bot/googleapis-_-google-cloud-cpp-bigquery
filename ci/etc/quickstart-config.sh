@@ -31,7 +31,6 @@ function quickstart::arguments() {
   case "${library}" in
     "bigquery_unified")
       echo "${GOOGLE_CLOUD_PROJECT}"
-      echo "${GOOGLE_CLOUD_CPP_BIGQUERY_TEST_QUICKSTART_TABLE}"
       return 0
       ;;
     *)

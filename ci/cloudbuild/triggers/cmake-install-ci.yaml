@@ -14,7 +14,7 @@
 
 filename: ci/cloudbuild/cloudbuild.yaml
 github:
-  name: google-cloud-cpp
+  name: google-cloud-cpp-bigquery
   owner: googleapis
   push:
     branch: ^main$
