@@ -41,9 +41,10 @@ fi
 
 ## [BEGIN packaging.md]
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
   "${cmake_config_testing_details[@]}" \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \

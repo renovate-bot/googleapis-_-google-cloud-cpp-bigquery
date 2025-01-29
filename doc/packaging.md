@@ -223,20 +223,22 @@ cmake \
 -DARROW_BUILD_STATIC=ON && \
 sudo cmake --build cmake-out --target install
 
-#### google-cloud-cpp
+```
 
+#### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
 curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
-tar -xzf - --strip-components=1 && \
-cmake \
--GNinja -S . -B cmake-out \
--DCMAKE_BUILD_TYPE=Release \
--DBUILD_SHARED_LIBS=yes \
--DBUILD_TESTING=OFF \
--DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
--DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
--DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S . -B cmake-out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=yes \
+      -DBUILD_TESTING=OFF \
+      -DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
 sudo cmake --build cmake-out --target install
+```
 
 #### Compile and install the main project
 
@@ -244,8 +246,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -347,8 +350,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -436,8 +440,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -551,8 +556,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -720,8 +726,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -908,8 +915,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -990,12 +998,6 @@ sudo ldconfig
 
 #### opentelemetry-cpp
 
-The project has an **optional** dependency on the OpenTelemetry library.
-We recommend installing this library because:
-
-- the dependency will become required in the google-cloud-cpp v3.x series.
-- it is needed to produce distributed traces of the library.
-
 ```bash
 mkdir -p $HOME/Downloads/opentelemetry-cpp && cd $HOME/Downloads/opentelemetry-cpp
 curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18.0.tar.gz | \
@@ -1013,14 +1015,45 @@ sudo cmake --build cmake-out --target install -- -j ${NCPU:-4} && \
 sudo ldconfig
 ```
 
+#### apache-arrow
+
+mkdir -p $HOME/Downloads/arrow && cd $HOME/Downloads/arrow
+curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+tar -xzf - --strip-components=1 && \
+cmake \
+-GNinja -S cpp -B cmake-out \
+--preset ninja-release-minimal \
+-DARROW_JEMALLOC=OFF \
+-DBUILD_SHARED_LIBS=yes \
+-DARROW_BUILD_STATIC=ON && \
+sudo cmake --build cmake-out --target install
+
+```
+
+#### google-cloud-cpp
+mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S . -B cmake-out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=yes \
+      -DBUILD_TESTING=OFF \
+      -DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+sudo cmake --build cmake-out --target install
+```
+
 #### Compile and install the main project
 
 We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -1042,7 +1075,7 @@ Install the minimal development tools, libcurl, and OpenSSL:
 ```bash
 sudo apt-get update && \
 sudo apt-get --no-install-recommends install -y apt-transport-https apt-utils \
-        automake build-essential ca-certificates cmake curl git \
+        automake build-essential ca-certificates clang cmake curl git \
         gcc g++ libc-ares-dev libc-ares2 libcurl4-openssl-dev \
         libssl-dev m4 make ninja-build pkg-config tar wget zlib1g-dev
 ```
@@ -1060,6 +1093,9 @@ curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DABSL_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
       -DABSL_BUILD_TESTING=OFF \
       -DABSL_PROPAGATE_CXX_STD=ON \
       -DBUILD_SHARED_LIBS=yes \
@@ -1080,6 +1116,8 @@ curl -fsSL https://github.com/google/crc32c/archive/1.1.2.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=yes \
         -DCRC32C_BUILD_TESTS=OFF \
         -DCRC32C_BUILD_BENCHMARKS=OFF \
@@ -1112,6 +1150,8 @@ curl -fsSL https://github.com/protocolbuffers/protobuf/archive/v29.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=yes \
         -Dprotobuf_BUILD_TESTS=OFF \
         -Dprotobuf_ABSL_PROVIDER=package \
@@ -1131,6 +1171,8 @@ mkdir -p $HOME/Downloads/re2 && cd $HOME/Downloads/re2
 curl -fsSL https://github.com/google/re2/archive/2024-07-02.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=ON \
         -DRE2_BUILD_TESTING=OFF \
         -S . -B cmake-out && \
@@ -1150,6 +1192,8 @@ curl -fsSL https://github.com/grpc/grpc/archive/v1.67.0.tar.gz | \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=yes \
+        -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DgRPC_INSTALL=ON \
         -DgRPC_BUILD_TESTS=OFF \
         -DgRPC_ABSL_PROVIDER=package \
@@ -1163,20 +1207,14 @@ sudo cmake --build cmake-out --target install -- -j ${NCPU:-4} && \
 sudo ldconfig
 ```
 
-#### opentelemetry-cpp
-
-The project has an **optional** dependency on the OpenTelemetry library.
-We recommend installing this library because:
-
-- the dependency will become required in the google-cloud-cpp v3.x series.
-- it is needed to produce distributed traces of the library.
-
 ```bash
 mkdir -p $HOME/Downloads/opentelemetry-cpp && cd $HOME/Downloads/opentelemetry-cpp
 curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=yes \
         -DWITH_EXAMPLES=OFF \
         -DWITH_ABSEIL=ON \
@@ -1188,14 +1226,49 @@ sudo cmake --build cmake-out --target install -- -j ${NCPU:-4} && \
 sudo ldconfig
 ```
 
+#### apache-arrow
+
+mkdir -p $HOME/Downloads/arrow && cd $HOME/Downloads/arrow
+curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+tar -xzf - --strip-components=1 && \
+cmake \
+-GNinja -S cpp -B cmake-out \
+-DCMAKE_CXX_STANDARD=17 \
+-DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
+--preset ninja-release-minimal \
+-DARROW_JEMALLOC=OFF \
+-DBUILD_SHARED_LIBS=yes \
+-DARROW_BUILD_STATIC=ON && \
+sudo cmake --build cmake-out --target install
+
+```
+
+#### google-cloud-cpp
+mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S . -B cmake-out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
+      -DBUILD_SHARED_LIBS=yes \
+      -DBUILD_TESTING=OFF \
+      -DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+sudo cmake --build cmake-out --target install
+```
+
 #### Compile and install the main project
 
 We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \
@@ -1416,8 +1489,9 @@ We can now compile and install `google-cloud-cpp-bigquery`:
 
 ```bash
 # Pick a location to install the artifacts, e.g., `/usr/local` or `/opt`
-PREFIX="${HOME}/google-cloud-cpp-installed"
+PREFIX="${HOME}/google-cloud-cpp-bigquery-installed"
 cmake -S . -B cmake-out \
+  -DCMAKE_CXX_STANDARD=17 \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
   -DBUILD_TESTING=OFF \

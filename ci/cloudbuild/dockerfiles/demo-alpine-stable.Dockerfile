@@ -91,6 +91,7 @@ RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.g
       -DBUILD_SHARED_LIBS=yes \
       -DARROW_BUILD_STATIC=ON  && \
     cmake --build cmake-out --target install
+# ```
 
 # #### google-cloud-cpp
 WORKDIR /var/tmp/build/google-cloud-cpp
@@ -105,6 +106,7 @@ RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.ta
       -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
       -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
     cmake --build cmake-out --target install
+# ```
 
 ## [DONE packaging.md]
 

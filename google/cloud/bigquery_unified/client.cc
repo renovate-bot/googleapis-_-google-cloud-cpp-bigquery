@@ -15,6 +15,7 @@
 #include "google/cloud/bigquery_unified/client.h"
 #include "google/cloud/bigquery_unified/job_options.h"
 #include "google/cloud/bigquery_unified/read_options.h"
+#include "google/cloud/internal/absl_str_cat_quiet.h"
 #include "google/cloud/internal/make_status.h"
 #include "google/cloud/internal/pagination_range.h"
 #include "google/cloud/options.h"

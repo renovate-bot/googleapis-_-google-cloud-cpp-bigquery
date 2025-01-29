@@ -22,7 +22,7 @@ ARG NCPU=4
 # ```bash
 RUN apt-get update && \
     apt-get --no-install-recommends install -y apt-transport-https apt-utils \
-        automake build-essential ca-certificates cmake curl git \
+        automake build-essential ca-certificates clang cmake curl git \
         gcc g++ libc-ares-dev libc-ares2 libcurl4-openssl-dev \
         libssl-dev m4 make ninja-build pkg-config tar wget zlib1g-dev
 # ```
@@ -40,6 +40,9 @@ RUN curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | 
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DABSL_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
       -DABSL_BUILD_TESTING=OFF \
       -DABSL_PROPAGATE_CXX_STD=ON \
       -DBUILD_SHARED_LIBS=yes \
@@ -60,6 +63,8 @@ RUN curl -fsSL https://github.com/google/crc32c/archive/1.1.2.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=yes \
         -DCRC32C_BUILD_TESTS=OFF \
         -DCRC32C_BUILD_BENCHMARKS=OFF \
@@ -92,6 +97,8 @@ RUN curl -fsSL https://github.com/protocolbuffers/protobuf/archive/v29.0.tar.gz 
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=yes \
         -Dprotobuf_BUILD_TESTS=OFF \
         -Dprotobuf_ABSL_PROVIDER=package \
@@ -111,6 +118,8 @@ WORKDIR /var/tmp/build/re2
 RUN curl -fsSL https://github.com/google/re2/archive/2024-07-02.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=ON \
         -DRE2_BUILD_TESTING=OFF \
         -S . -B cmake-out && \
@@ -130,6 +139,8 @@ RUN curl -fsSL https://github.com/grpc/grpc/archive/v1.67.0.tar.gz | \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=yes \
+        -DCMAKE_CXX_STANDARD=17 \
+  -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DgRPC_INSTALL=ON \
         -DgRPC_BUILD_TESTS=OFF \
         -DgRPC_ABSL_PROVIDER=package \
@@ -143,19 +154,14 @@ RUN curl -fsSL https://github.com/grpc/grpc/archive/v1.67.0.tar.gz | \
     ldconfig
 # ```
 
-# #### opentelemetry-cpp
-
-# The project has an **optional** dependency on the OpenTelemetry library.
-# We recommend installing this library because:
-# - the dependency will become required in the google-cloud-cpp v3.x series.
-# - it is needed to produce distributed traces of the library.
-
 # ```bash
 WORKDIR /var/tmp/build/opentelemetry-cpp
 RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
+        -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
         -DBUILD_SHARED_LIBS=yes \
         -DWITH_EXAMPLES=OFF \
         -DWITH_ABSEIL=ON \
@@ -165,6 +171,37 @@ RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18
         -S . -B cmake-out && \
     cmake --build cmake-out --target install -- -j ${NCPU:-4} && \
     ldconfig
+# ```
+
+# #### apache-arrow
+WORKDIR /var/tmp/build/arrow
+RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S cpp -B cmake-out \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
+      -DARROW_JEMALLOC=OFF \
+      -DBUILD_SHARED_LIBS=yes \
+      -DARROW_BUILD_STATIC=ON  && \
+    cmake --build cmake-out --target install
+# ```
+
+# #### google-cloud-cpp
+WORKDIR /var/tmp/build/google-cloud-cpp
+RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S . -B cmake-out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
+      -DBUILD_SHARED_LIBS=yes \
+      -DBUILD_TESTING=OFF \
+      -DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+    cmake --build cmake-out --target install
 # ```
 
 ## [DONE packaging.md]
