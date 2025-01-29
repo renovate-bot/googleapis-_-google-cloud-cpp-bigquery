@@ -1235,7 +1235,6 @@ cmake \
 -GNinja -S cpp -B cmake-out \
 -DCMAKE_CXX_STANDARD=17 \
 -DCMAKE_CXX_FLAGS='-D_GLIBCXX_USE_CXX11_ABI=0' \
---preset ninja-release-minimal \
 -DARROW_JEMALLOC=OFF \
 -DBUILD_SHARED_LIBS=yes \
 -DARROW_BUILD_STATIC=ON && \
