@@ -19,7 +19,7 @@ if (NOT BUILD_TESTING)
 endif ()
 
 set(bigquery_unified_integration_samples # cmake-format: sort
-                                         job_samples.cc)
+                                         job_samples.cc read_samples.cc)
 
 # Export the list of unit tests to a .bzl file so we do not need to maintain the
 # list in two places.

@@ -18,4 +18,5 @@
 
 bigquery_unified_integration_samples = [
     "job_samples.cc",
+    "read_samples.cc",
 ]
