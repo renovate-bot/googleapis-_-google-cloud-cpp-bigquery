@@ -247,7 +247,7 @@ def gl_cpp_workspace0(name = None):
     # google-cloud-cpp
     maybe(
         http_archive,
-        name = "google_cloud_cpp",
+        name = "com_google_googleapis_google_cloud_cpp",
         urls = [
             "https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz",
         ],
