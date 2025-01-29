@@ -260,3 +260,16 @@ endfunction ()
 if (BUILD_TESTING)
     bigquery_unified_client_define_tests()
 endif ()
+
+if (BUILD_TESTING AND GOOGLE_CLOUD_CPP_ENABLE_CXX_EXCEPTIONS)
+    add_executable(bigquery_unified_quickstart "quickstart/quickstart.cc")
+    target_link_libraries(bigquery_unified_quickstart
+                          PRIVATE google-cloud-cpp-bigquery::bigquery_unified)
+    google_cloud_cpp_add_common_options(bigquery_unified_quickstart)
+    add_test(
+        NAME bigquery_unified_quickstart
+        COMMAND cmake -P "${PROJECT_SOURCE_DIR}/cmake/quickstart-runner.cmake"
+                $<TARGET_FILE:bigquery_unified_quickstart> GOOGLE_CLOUD_PROJECT)
+    set_tests_properties(bigquery_unified_quickstart
+                         PROPERTIES LABELS "integration-test;quickstart")
+endif ()

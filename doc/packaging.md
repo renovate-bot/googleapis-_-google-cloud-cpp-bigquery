@@ -189,16 +189,10 @@ install the development packages
 ```bash
 apk update && \
     apk add abseil-cpp-dev crc32c-dev c-ares-dev curl-dev grpc-dev \
-        protobuf-dev nlohmann-json openssl-dev re2-dev
+        protobuf-dev ninja nlohmann-json openssl-dev re2-dev
 ```
 
 #### opentelemetry-cpp
-
-The project has an **optional** dependency on the OpenTelemetry library.
-We recommend installing this library because:
-
-- the dependency will become required in the google-cloud-cpp v3.x series.
-- it is needed to produce distributed traces of the library.
 
 ```bash
 mkdir -p $HOME/Downloads/opentelemetry-cpp && cd $HOME/Downloads/opentelemetry-cpp
@@ -215,6 +209,34 @@ curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18.0.t
         -S . -B cmake-out && \
 sudo cmake --build cmake-out --target install -- -j ${NCPU:-4}
 ```
+
+#### apache-arrow
+
+mkdir -p $HOME/Downloads/arrow && cd $HOME/Downloads/arrow
+curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+tar -xzf - --strip-components=1 && \
+cmake \
+-GNinja -S cpp -B cmake-out \
+--preset ninja-release-minimal \
+-DARROW_JEMALLOC=OFF \
+-DBUILD_SHARED_LIBS=yes \
+-DARROW_BUILD_STATIC=ON && \
+sudo cmake --build cmake-out --target install
+
+#### google-cloud-cpp
+
+mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+tar -xzf - --strip-components=1 && \
+cmake \
+-GNinja -S . -B cmake-out \
+-DCMAKE_BUILD_TYPE=Release \
+-DBUILD_SHARED_LIBS=yes \
+-DBUILD_TESTING=OFF \
+-DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+-DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+-DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+sudo cmake --build cmake-out --target install
 
 #### Compile and install the main project
 
