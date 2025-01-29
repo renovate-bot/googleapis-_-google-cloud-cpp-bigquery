@@ -223,7 +223,7 @@ cmake \
 -DARROW_BUILD_STATIC=ON && \
 sudo cmake --build cmake-out --target install
 
-#### apache-arrow
+#### google-cloud-cpp
 
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
 curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
