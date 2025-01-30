@@ -27,7 +27,7 @@ ARG NCPU=4
 # ```bash
 RUN zypper refresh && \
     zypper install --allow-downgrade -y automake cmake curl \
-        gcc gcc-c++ gcc8 gcc8-c++ git gzip libtool make patch tar wget
+        gcc gcc-c++ gcc11 gcc11-c++ git gzip libtool make patch tar wget
 # ```
 
 # Install some of the dependencies for `google-cloud-cpp`.
@@ -36,7 +36,7 @@ RUN zypper refresh && \
 RUN zypper refresh && \
     zypper install --allow-downgrade -y abseil-cpp-devel c-ares-devel \
         libcurl-devel libopenssl-devel libcrc32c-devel nlohmann_json-devel \
-        grpc-devel libprotobuf-devel
+        grpc-devel libprotobuf-devel ninja
 # ```
 
 # The following steps will install libraries and tools in `/usr/local`. openSUSE
@@ -50,12 +50,16 @@ ENV PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:/usr/local/lib64/pkgconfig
 ENV PATH=/usr/local/bin:${PATH}
 # ```
 
-# #### opentelemetry-cpp
+# Use the following environment variables to configure the compiler used by
+# CMake.
 
-# The project has an **optional** dependency on the OpenTelemetry library.
-# We recommend installing this library because:
-# - the dependency will become required in the google-cloud-cpp v3.x series.
-# - it is needed to produce distributed traces of the library.
+ENV CXX=g++-11
+ENV CC=gcc-11
+
+# TODO(#64): Figure out what toolchain changes and additional dependencies that
+# need to be rebuilt in order to support C++17.
+
+# #### opentelemetry-cpp
 
 # ```bash
 WORKDIR /var/tmp/build/opentelemetry-cpp
@@ -64,6 +68,7 @@ RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18
     cmake \
         -DCMAKE_BUILD_TYPE=Release \
         -DBUILD_SHARED_LIBS=yes \
+        -DCMAKE_CXX_STANDARD=17 \
         -DWITH_EXAMPLES=OFF \
         -DWITH_ABSEIL=ON \
         -DBUILD_TESTING=OFF \
@@ -74,12 +79,35 @@ RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18
     ldconfig
 # ```
 
-# Use the following environment variables to configure the compiler used by
-# CMake.
+# #### apache-arrow
+WORKDIR /var/tmp/build/arrow
+RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S cpp -B cmake-out \
+      --preset ninja-release-minimal \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DARROW_JEMALLOC=OFF \
+      -DBUILD_SHARED_LIBS=yes \
+      -DARROW_BUILD_STATIC=ON  && \
+    cmake --build cmake-out --target install
+# ```
 
-ENV CXX=g++-8
-
-ENV CC=gcc-8
+# #### google-cloud-cpp
+WORKDIR /var/tmp/build/google-cloud-cpp
+RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S . -B cmake-out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_CXX_STANDARD=17 \
+      -DBUILD_SHARED_LIBS=yes \
+      -DBUILD_TESTING=OFF \
+      -DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+    cmake --build cmake-out --target install
+# ```
 
 ## [DONE packaging.md]
 
