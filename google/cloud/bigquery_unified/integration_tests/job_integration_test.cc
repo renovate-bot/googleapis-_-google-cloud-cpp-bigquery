@@ -66,6 +66,7 @@ TEST_F(JobIntegrationTest, InsertJobAwaitTest) {
   auto query_job = client.InsertJob(job, options).get();
   ASSERT_STATUS_OK(query_job);
   auto job_id = query_job->job_reference().job_id();
+  std::string job_location = query_job->job_reference().location().value();
 
   // get the inserted job
   bigquery_proto::GetJobRequest get_request;
@@ -93,6 +94,7 @@ TEST_F(JobIntegrationTest, InsertJobAwaitTest) {
   bigquery_proto::DeleteJobRequest delete_request;
   delete_request.set_project_id(project_id_);
   delete_request.set_job_id(job_id);
+  delete_request.set_location(job_location);
   auto delete_job = client.DeleteJob(delete_request);
   EXPECT_STATUS_OK(delete_job);
 }
