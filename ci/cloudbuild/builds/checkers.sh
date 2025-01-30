@@ -208,11 +208,6 @@ time {
   for generator in "${!GENERATOR_MAP[@]}"; do
     "${generator}" >"${GENERATOR_MAP[${generator}]}"
   done
-
-  mapfile -t libraries < <(features::libraries)
-  for library in "${libraries[@]}"; do
-    ci/generate-markdown/update-library-readme.sh "${library}"
-  done
 }
 
 # mdformat does `tempfile.mkstemp(); ...; os.replace(tmp_path, path)`,
