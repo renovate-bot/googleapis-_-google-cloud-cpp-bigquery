@@ -89,8 +89,8 @@ run the examples included with the libraries.
 
 ### Building with Bazel
 
-This library requires Bazel >= 7.0. [Apache Arrow][apache-arrow] must also
-already be installed on the system.
+This library requires Bazel >= 7.0. [Apache Arrow must also already be installed
+on the system](/doc/bazel-apache-arrow.md).
 
 From the top-level directory, run the usual commands.
 
