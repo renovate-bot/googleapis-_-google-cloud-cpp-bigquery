@@ -15,7 +15,7 @@ curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | 
       --preset ninja-release-minimal \
       -DARROW_JEMALLOC=OFF \
       -DARROW_BUILD_STATIC=ON  && \
-    cmake --build cmake-out --target install && \
+    cmake --build cmake-out --target install
 ```
 
 First, we have to rely on `WORKSPACE.bazel` files and cannot take advantage of
