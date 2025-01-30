@@ -108,16 +108,17 @@ void DeleteJob(google::cloud::bigquery_unified::Client client,
                std::vector<std::string> const& argv) {
   //! [START bigquery_delete_job] [bigquery-delete-job]
   [](google::cloud::bigquery_unified::Client client, std::string project_id,
-     std::string job_id) {
+     std::string job_id, std::string job_location) {
     google::cloud::bigquery::v2::DeleteJobRequest delete_request;
     delete_request.set_project_id(project_id);
     delete_request.set_job_id(job_id);
+    delete_request.set_location(job_location);
     auto delete_job = client.DeleteJob(delete_request);
     if (!delete_job.ok()) throw std::move(delete_job);
     std::cout << "Job " << job_id << " is deleted.\n";
   }
   //! [END bigquery_delete_job] [bigquery-delete-job]
-  (client, argv[0], argv[1]);
+  (client, argv[0], argv[1], argv[2]);
 }
 
 google::cloud::bigquery_unified::Client MakeSampleClient() {
@@ -163,8 +164,8 @@ int RunOneCommand(std::vector<std::string> argv) {
       make_command_entry("bigquery-insert-job", InsertJob, 2,
                          " <project_id> <query_text>"),
       make_command_entry("bigquery-list-jobs", ListJobs, 1, " <project_id>"),
-      make_command_entry("bigquery-delete-job", DeleteJob, 2,
-                         " <project_id> <job_id>")};
+      make_command_entry("bigquery-delete-job", DeleteJob, 3,
+                         " <project_id> <job_id> <location>")};
 
   static std::string usage_msg = [&argv, &commands] {
     std::string usage;
@@ -255,7 +256,7 @@ void RunAll() {
   ListJobs(client, {project_id});
 
   SampleBanner("bigquery-delete-job");
-  DeleteJob(client, {project_id, job_id});
+  DeleteJob(client, {project_id, job_id, job_location});
 
   // delete the jobs whose creation time > 7 days and labeled "job_samples"
   google::cloud::bigquery::v2::ListJobsRequest list_old_jobs_request;
