@@ -27,6 +27,9 @@ RUN dnf makecache && \
     dnf makecache && \
     dnf install -y cmake findutils gcc-c++ git make openssl-devel \
         patch zlib-devel libcurl-devel c-ares-devel tar wget which
+
+RUN /usr/bin/crb enable && \
+    dnf install -y ninja-build
 # ```
 
 # Rocky Linux's version of `pkg-config` (https://github.com/pkgconf/pkgconf) is
@@ -192,11 +195,6 @@ RUN curl -fsSL https://github.com/nlohmann/json/archive/v3.11.3.tar.gz | \
 
 # #### opentelemetry-cpp
 
-# The project has an **optional** dependency on the OpenTelemetry library.
-# We recommend installing this library because:
-# - the dependency will become required in the google-cloud-cpp v3.x series.
-# - it is needed to produce distributed traces of the library.
-
 # ```bash
 WORKDIR /var/tmp/build/opentelemetry-cpp
 RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18.0.tar.gz | \
@@ -212,6 +210,34 @@ RUN curl -fsSL https://github.com/open-telemetry/opentelemetry-cpp/archive/v1.18
         -S . -B cmake-out && \
     cmake --build cmake-out --target install -- -j ${NCPU:-4} && \
     ldconfig
+# ```
+
+# #### apache-arrow
+WORKDIR /var/tmp/build/arrow
+RUN curl -fsSL https://github.com/apache/arrow/archive/apache-arrow-18.1.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S cpp -B cmake-out \
+      --preset ninja-release-minimal \
+      -DARROW_JEMALLOC=OFF \
+      -DBUILD_SHARED_LIBS=yes \
+      -DARROW_BUILD_STATIC=ON  && \
+    cmake --build cmake-out --target install
+# ```
+
+# #### google-cloud-cpp
+WORKDIR /var/tmp/build/google-cloud-cpp
+RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+    tar -xzf - --strip-components=1 && \
+    cmake \
+      -GNinja -S . -B cmake-out \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DBUILD_SHARED_LIBS=yes \
+      -DBUILD_TESTING=OFF \
+      -DGOOGLE_CLOUD_CPP_WITH_MOCKS=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
+      -DGOOGLE_CLOUD_CPP_ENABLE=bigquery,bigquerycontrol,opentelemetry && \
+    cmake --build cmake-out --target install
 # ```
 
 ## [DONE packaging.md]

@@ -27,6 +27,9 @@ RUN apt-get update && \
         libssl-dev m4 make ninja-build pkg-config tar wget zlib1g-dev
 # ```
 
+# TODO(#64): Figure out what toolchain changes and additional dependencies that
+# need to be rebuilt in order to support C++17.
+
 # #### Abseil
 
 # Debian 11 ships with Abseil==20200923.3.  Unfortunately, the current gRPC
