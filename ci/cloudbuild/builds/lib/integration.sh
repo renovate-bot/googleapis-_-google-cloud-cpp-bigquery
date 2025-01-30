@@ -88,6 +88,7 @@ function integration::bazel_with_emulators() {
   local args=("${@:2}")
 
   production_integration_tests=(
+    "google/cloud/bigquery_unified/..."
   )
 
   production_tests_tag_filters="integration-test,-ud-only"
