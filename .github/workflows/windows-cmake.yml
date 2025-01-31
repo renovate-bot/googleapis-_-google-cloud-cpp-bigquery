@@ -41,25 +41,10 @@ jobs:
         exclude-from-full-trick: [ true ]
         msvc: [ msvc-2022 ]
         build_type: [ Debug, Release ]
-        arch: [ x64, x86 ]
-        shard: [Core1, Core2, Core3, Compute, AIPlatform, Shard1, Shard2, Shard3, Other]
-        exclude:
-        # Also skip shards (Compute and Other) that contain only generated code.
-        - exclude-from-full-trick: ${{ ! inputs.full-matrix }}
-          shard: Compute
-        - exclude-from-full-trick: ${{ ! inputs.full-matrix }}
-          shard: AIPlatform
-        - exclude-from-full-trick: ${{ ! inputs.full-matrix }}
-          shard: Shard1
-        - exclude-from-full-trick: ${{ ! inputs.full-matrix }}
-          shard: Shard2
-        - exclude-from-full-trick: ${{ ! inputs.full-matrix }}
-          shard: Shard3
-        - exclude-from-full-trick: ${{ ! inputs.full-matrix }}
-          shard: Other
-        # No need to duplicate testing with x86 mode and Debug mode
-        - arch: x86
-          build_type: Debug
+        # arrow is only supported on 'x64 | (arm64 & !windows)',
+        # which does not match x86-windows
+        arch: [ x64 ]
+        shard: [ All ]
     steps:
     - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
       with:
@@ -81,133 +66,8 @@ jobs:
       shell: bash
       run: |
         echo "vcpkg-version=$(cat ci/etc/vcpkg-version.txt)" >> "${GITHUB_OUTPUT}"
-        core1_features=(bigtable pubsub pubsublite)
-        core2_features=(spanner)
-        core3_features=(storage storage_grpc)
-        # These are the libraries with the most "clients". To build the list
-        # run something like this and create shards:
-        #
-        # git grep -l 'class.*Client' 'google/cloud/**_client.h' |
-        #    egrep -v "(bigtable/|internal/|pubsub/|pubsublite/|spanner/|storage/)" |
-        #    cut -f -3 -d/| sort | uniq -c | sort -n |
-        #    awk '{ s += $1; print s, $0}'
-        #
-        shard1_features=(
-          appengine
-          dataproc
-          discoveryengine
-          monitoring
-          retail
-          sql
-          dialogflow_cx
-          dialogflow_es
-        )
-        shard2_features=(
-          beyondcorp
-          billing
-          binaryauthorization
-          gkemulticloud
-          logging
-          notebooks
-          osconfig
-          servicecontrol
-          speech
-          support
-          video
-          datacatalog
-          iam
-          kms
-          run
-          talent
-          contentwarehouse
-          dataplex
-          bigquery
-          bigquerycontrol
-          resourcemanager
-        )
-        shard3_features=(
-          securesourcemanager
-          securitycentermanagement
-          servicehealth
-          servicemanagement
-          serviceusage
-          shell
-          storagecontrol
-          storageinsights
-          storagetransfer
-          tasks
-          telcoautomation
-          texttospeech
-          timeseriesinsights
-          translate
-          videointelligence
-          vmmigration
-          vmwareengine
-          vpcaccess
-          webrisk
-          websecurityscanner
-          workstations
-          automl
-          cloudbuild
-          cloudcontrolspartner
-          composer
-          containeranalysis
-          datastore
-          eventarc
-          functions
-          iap
-          language
-          metastore
-          networkconnectivity
-          networkservices
-          policytroubleshooter
-          profiler
-          redis
-          securitycenter
-          servicedirectory
-          tpu
-          trace
-          vision
-          workflows
-        )
-        if [[ "${{ matrix.shard }}" == "Core1" ]]; then
-          features="$(printf ",%s" "${core1_features[@]}")"
-          echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{ matrix.shard }}" == "Core2" ]]; then
-          features="$(printf ",%s" "${core2_features[@]}")"
-          echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{ matrix.shard }}" == "Core3" ]]; then
-          features="$(printf ",%s" "${core3_features[@]}")"
-          echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{matrix.shard}}" == "Compute" ]]; then
-          echo "features=compute" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{matrix.shard}}" == "AIPlatform" ]]; then
-          echo "features=aiplatform" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{matrix.shard}}" == "Shard1" ]]; then
-          features="$(printf ",%s" "${shard1_features[@]}")"
-          echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{matrix.shard}}" == "Shard2" ]]; then
-          features="$(printf ",%s" "${shard2_features[@]}")"
-          echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
-        elif [[ "${{matrix.shard}}" == "Shard3" ]]; then
-          features="$(printf ",%s" "${shard3_features[@]}")"
-          echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
-        else
-          skipped_features=("${core1_features[@]}")
-          skipped_features+=("${core2_features[@]}")
-          skipped_features+=("${core3_features[@]}")
-          skipped_features+=(compute)
-          skipped_features+=(aiplatform)
-          skipped_features+=("${shard1_features[@]}")
-          skipped_features+=("${shard2_features[@]}")
-          skipped_features+=("${shard3_features[@]}")
-          # We use vcpkg in this build, which ships with Protobuf v21.x.
-          # Both `asset` and `channel` require Protobuf >= 23.x to compile on
-          # Windows.
-          skipped_features+=(asset channel)
-          skipped="$(printf ",-%s" "${skipped_features[@]}")"
-          echo "features=__ga_libraries__,__experimental_libraries__,${skipped:1}" >> "${GITHUB_OUTPUT}"
-        fi
+        all_features=(bigquery_unified)
+        echo "features=${features:1}" >> "${GITHUB_OUTPUT}"
     - name: Pre Build Disk Space
       shell: bash
       run: df -m
@@ -238,7 +98,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # @v1.13.0
       with:
         arch: ${{ matrix.arch }}
-    - name: Build google-cloud-cpp
+    - name: Build google-cloud-cpp-bigquery
       shell: bash
       run: |
         export VCPKG_ROOT="${TEMP}/.build/vcpkg"
@@ -253,9 +113,9 @@ jobs:
       run: df -m
     env:
       SCCACHE_GCS_BUCKET: cloud-cpp-community-gha-cache
-      SCCACHE_GCS_KEY_PREFIX: sccache/${{ matrix.msvc }}/${{ matrix.arch}}/${{ matrix.build_type }}
+      SCCACHE_GCS_KEY_PREFIX: bigquery-sccache/${{ matrix.msvc }}/${{ matrix.arch}}/${{ matrix.build_type }}
       SCCACHE_GCS_RW_MODE: ${{ inputs.sccache-mode }}
       SCCACHE_IGNORE_SERVER_IO_ERROR: 1
-      VCPKG_BINARY_SOURCES: x-gcs,gs://cloud-cpp-community-gha-cache/vcpkg-cache/${{ matrix.msvc }},${{ inputs.vcpkg-cache-mode }}
+      VCPKG_BINARY_SOURCES: x-gcs,gs://cloud-cpp-community-gha-cache/bigquery-vcpkg-cache/${{ matrix.msvc }},${{ inputs.vcpkg-cache-mode }}
       VCPKG_TRIPLET: ${{ matrix.arch }}-windows
       GHA_TEST_BUCKET: "gcs-grpc-team-cloud-cpp-testing-bucket"
