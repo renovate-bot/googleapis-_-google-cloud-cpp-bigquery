@@ -68,7 +68,7 @@ integration::bazel_with_emulators coverage "${args[@]}" "${integration_args[@]}"
 # your own token in your personal project's Secret Manager so that your
 # personal builds have coverage data uploaded to your own account. See also
 # https://cloud.google.com/build/docs/securing-builds/use-secrets
-if [[ -z "${CODECOV_TOKEN:-}" ]]; then
+if [[ -z "${BIGQUERY_CODECOV_TOKEN:-}" ]]; then
   io::log_h2 "No codecov token. Skipping upload."
   exit 0
 fi
@@ -107,6 +107,6 @@ time {
     exit 1
   fi
   chmod +x "${codecov}"
-  env -i HOME="${HOME}" "${codecov}" --token="${CODECOV_TOKEN}" "${codecov_args[@]}"
+  env -i HOME="${HOME}" "${codecov}" --token="${BIGQUERY_CODECOV_TOKEN}" "${codecov_args[@]}"
   rm "${codecov}"
 }
