@@ -22,7 +22,7 @@ set(PACKAGE_BUGREPORT
     "https://github.com/googleapis/google-cloud-cpp-bigquery/issues")
 project(
     google-cloud-cpp-bigquery
-    VERSION 0.0.0
+    VERSION 0.1.0
     LANGUAGES CXX)
 set(PROJECT_VERSION_PRE_RELEASE "")
 
