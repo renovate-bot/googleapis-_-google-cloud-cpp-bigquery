@@ -22,6 +22,8 @@
 
 namespace {
 
+thread_local google::cloud::bigquery::v2::JobReference thread_job_reference;
+
 void GetJob(google::cloud::bigquery_unified::Client client,
             std::vector<std::string> const& argv) {
   //! [START bigquery_get_job] [bigquery-get-job]
@@ -41,9 +43,10 @@ void GetJob(google::cloud::bigquery_unified::Client client,
 
 void InsertJob(google::cloud::bigquery_unified::Client client,
                std::vector<std::string> const& argv) {
-  //! [START bigquery_create_job] [bigquery-create-job]
-  [](google::cloud::bigquery_unified::Client client, std::string project_id,
-     std::string query_text) {
+  thread_job_reference =
+      //! [START bigquery_create_job] [bigquery-create-job]
+      [](google::cloud::bigquery_unified::Client client, std::string project_id,
+         std::string query_text) -> google::cloud::bigquery::v2::JobReference {
     google::cloud::bigquery::v2::JobConfigurationQuery query;
     query.mutable_use_legacy_sql()->set_value(false);
     query.set_query(std::move(query_text));
@@ -64,6 +67,7 @@ void InsertJob(google::cloud::bigquery_unified::Client client,
     std::cout << "Job " << insert_job->job_reference().job_id()
               << " is inserted and its metadata is:\n"
               << insert_job->DebugString();
+    return insert_job->job_reference();
   }
   //! [END bigquery_create_job] [bigquery-create-job]
   (client, argv[0], argv[1]);
@@ -235,28 +239,19 @@ void RunAll() {
       "GROUP BY name, state, year ";
   InsertJob(client, {project_id, query_text});
 
-  google::cloud::bigquery::v2::ListJobsRequest list_jobs_request;
-  list_jobs_request.set_project_id(project_id);
-  std::string job_id;
-  std::string job_location;
-  for (auto const& j : client.ListJobs(list_jobs_request)) {
-    if (!j) throw std::move(j).status();
-    job_id = j->job_reference().job_id();
-    job_location = j->job_reference().location().value();
-    break;
-  }
-
   SampleBanner("bigquery-get-job");
-  GetJob(client, {project_id, job_id});
+  GetJob(client, {project_id, thread_job_reference.job_id()});
 
   SampleBanner("bigquery-cancel-job");
-  CancelJob(client, {project_id, job_id, job_location});
+  CancelJob(client, {project_id, thread_job_reference.job_id(),
+                     thread_job_reference.location().value()});
 
   SampleBanner("bigquery-list-jobs");
   ListJobs(client, {project_id});
 
   SampleBanner("bigquery-delete-job");
-  DeleteJob(client, {project_id, job_id, job_location});
+  DeleteJob(client, {project_id, thread_job_reference.job_id(),
+                     thread_job_reference.location().value()});
 
   // delete the jobs whose creation time > 7 days and labeled "job_samples"
   google::cloud::bigquery::v2::ListJobsRequest list_old_jobs_request;
