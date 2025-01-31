@@ -1,5 +1,7 @@
 # Changelog
 
+## v0.2.0 - TBD
+
 ## v0.1.0 - 2025-01
 
 ### Initial Release
