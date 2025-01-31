@@ -10,7 +10,8 @@
       "default-features": false,
       "features": [
         "bigquery",
-        "bigquerycontrol"
+        "bigquerycontrol",
+        "opentelemetry"
       ]
     },
     "arrow",

@@ -26,6 +26,10 @@ project(
     LANGUAGES CXX)
 set(PROJECT_VERSION_PRE_RELEASE "rc")
 
+set(GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY
+    OFF
+    CACHE BOOL "Enable OpenTelemetry in google-cloud-cpp-bigquery.")
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 include(GoogleCloudCppFeatures)

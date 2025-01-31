@@ -180,6 +180,21 @@ bigquery_unified_library(
     PKGCONFIG_DEPS
     ${bigquery_unified_pkgconfig_deps})
 
+if (GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY)
+    find_package(google_cloud_cpp_opentelemetry CONFIG)
+    if (TARGET google-cloud-cpp::opentelemetry)
+        target_compile_definitions(
+            google_cloud_cpp_bigquery_bigquery_unified
+            PUBLIC # Enable OpenTelemetry features in google-cloud-cpp-bigquery
+                    GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY)
+    else ()
+        message(FATAL_ERROR
+            "OpenTelemetry is not enabled in the package "
+            "google-cloud-cpp, the target "
+            "google-cloud-cpp::opentelemetry is not available.")
+    endif ()
+endif ()
+
 if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
     add_library(google_cloud_cpp_bigquery_bigquery_unified_mocks INTERFACE)
     set(google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs
