@@ -22,6 +22,10 @@ find_package(google_cloud_cpp_bigquery REQUIRED)
 find_package(google_cloud_cpp_bigquerycontrol REQUIRED)
 find_package(Arrow REQUIRED)
 
+# Generate the version information from the CMake values.
+configure_file(internal/version_info.h.in
+               ${CMAKE_CURRENT_SOURCE_DIR}/internal/version_info.h)
+
 function (bigquery_unified_library library_name library_alias)
     cmake_parse_arguments(_opt "EXPERIMENTAL;TRANSITION;INSTALL" "INITIAL_YEAR"
                           "LIBRARY_FILES;DEPS;PKGCONFIG_DEPS" ${ARGN})
