@@ -186,12 +186,13 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY)
         target_compile_definitions(
             google_cloud_cpp_bigquery_bigquery_unified
             PUBLIC # Enable OpenTelemetry features in google-cloud-cpp-bigquery
-                    GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY)
+                   GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY)
     else ()
-        message(FATAL_ERROR
-            "OpenTelemetry is not enabled in the package "
-            "google-cloud-cpp, the target "
-            "google-cloud-cpp::opentelemetry is not available.")
+        message(
+            FATAL_ERROR
+                "OpenTelemetry is not enabled in the package "
+                "google-cloud-cpp, the target "
+                "google-cloud-cpp::opentelemetry is not available.")
     endif ()
 endif ()
 
