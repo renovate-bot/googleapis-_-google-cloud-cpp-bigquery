@@ -25,8 +25,8 @@ namespace {
 void QueryAndRead(google::cloud::bigquery_unified::Client client,
                   std::vector<std::string> const& argv) {
   //! [bigquery-query-and-read-arrow]
-  [](google::cloud::bigquery_unified::Client client, std::string project_id,
-     std::string query_text) {
+  (void)[](google::cloud::bigquery_unified::Client client,
+           std::string project_id, std::string query_text) {
     using ::google::cloud::StatusOr;
     google::cloud::bigquery::v2::JobConfigurationQuery query;
     query.mutable_use_legacy_sql()->set_value(false);
@@ -62,9 +62,7 @@ void QueryAndRead(google::cloud::bigquery_unified::Client client,
             tasks.push_back(std::async(
                 std::launch::async,
                 [reader = std::move(r)]() mutable -> StatusOr<ReadMetadata> {
-                  ReadMetadata metadata{.thread_id = std::this_thread::get_id(),
-                                        .num_batches = 0,
-                                        .total_rows = 0};
+                  ReadMetadata metadata{std::this_thread::get_id(), 0, 0};
                   for (auto& batch : reader) {
                     if (!batch) return std::move(batch).status();
                     if ((*batch)->ValidateFull() != arrow::Status::OK()) {
