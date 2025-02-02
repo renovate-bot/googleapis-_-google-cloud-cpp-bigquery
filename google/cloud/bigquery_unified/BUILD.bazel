@@ -21,14 +21,12 @@ package(default_visibility = ["//visibility:private"])
 
 licenses(["notice"])  # Apache 2.0
 
-# Enable the config when the bool flag is visible.
-# https://github.com/googleapis/google-cloud-cpp/pull/14961
-# config_setting(
-#     name = "enable_opentelemetry",
-#     flag_values = {
-#         "@google_cloud_cpp//:enable_opentelemetry": "true",
-#     },
-# )
+config_setting(
+    name = "enable_opentelemetry",
+    flag_values = {
+        "@google_cloud_cpp//:enable_opentelemetry": "true",
+    },
+)
 
 filegroup(
     name = "common_public_hdrs",
@@ -67,7 +65,7 @@ cc_library(
     # defines = select({
     #     ":enable_opentelemetry": [
     #         # Enable OpenTelemetry features in google-cloud-cpp
-    #         "GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY",
+    #         "GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY",
     #     ],
     #     "//conditions:default": [],
     # }),

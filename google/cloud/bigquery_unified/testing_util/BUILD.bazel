@@ -42,4 +42,13 @@ cc_library(
         "@com_google_googletest//:gtest_main",
         "@google_cloud_cpp//:common",
     ],
+    # Enable the config when the bool flag is visible.
+    # https://github.com/googleapis/google-cloud-cpp/pull/14961
+    # + select({
+    #     ":enable_opentelemetry": [
+    #         "@io_opentelemetry_cpp//exporters/memory:in_memory_span_exporter",
+    #         "@io_opentelemetry_cpp//sdk/src/trace",
+    #     ],
+    #     "//conditions:default": [],
+    # })
 )

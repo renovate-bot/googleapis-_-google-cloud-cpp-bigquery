@@ -19,7 +19,7 @@
 namespace google::cloud::bigquery_unified_internal {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
-#ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+#ifdef GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
 
 TracingConnection::TracingConnection(
     std::shared_ptr<bigquery_unified::Connection> child)
@@ -111,15 +111,15 @@ StatusOr<bigquery_unified::ReadArrowResponse> TracingConnection::ReadArrow(
   // Not add span tracing for now, will add it after discussion.
   return child_->ReadArrow(read_session, opts);
 }
-#endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+#endif  // GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
 
 std::shared_ptr<bigquery_unified::Connection> MakeTracingConnection(
     std::shared_ptr<bigquery_unified::Connection> conn) {
-#ifdef GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+#ifdef GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
   if (internal::TracingEnabled(conn->options())) {
     conn = std::make_shared<TracingConnection>(std::move(conn));
   }
-#endif  // GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY
+#endif  // GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
   return conn;
 }
 

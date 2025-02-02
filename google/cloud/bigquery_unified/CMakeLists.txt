@@ -186,7 +186,7 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY)
         target_compile_definitions(
             google_cloud_cpp_bigquery_bigquery_unified
             PUBLIC # Enable OpenTelemetry features in google-cloud-cpp-bigquery
-                   GOOGLE_CLOUD_CPP_HAVE_OPENTELEMETRY)
+                   GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY)
     else ()
         message(
             FATAL_ERROR
@@ -254,7 +254,7 @@ function (bigquery_unified_client_define_tests)
     find_package(GTest CONFIG REQUIRED)
     set(bigquery_unified_client_unit_tests
         # cmake-format: sort
-        client_test.cc internal/connection_impl_test.cc
+        client_test.cc internal/connection_impl_test.cc internal/tracing_connection_test.cc
         internal/default_options_test.cc)
 
     # Export the list of unit tests to a .bzl file so we do not need to maintain

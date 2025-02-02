@@ -18,8 +18,10 @@
 
 google_cloud_cpp_bigquery_bigquery_unified_testing_hdrs = [
     "status_matchers.h",
+    "opentelemetry_matchers.h",
 ]
 
 google_cloud_cpp_bigquery_bigquery_unified_testing_srcs = [
     "status_matchers.cc",
+    "opentelemetry_matchers.cc",
 ]
