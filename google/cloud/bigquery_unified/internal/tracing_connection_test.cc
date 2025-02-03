@@ -24,23 +24,23 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace {
 
 #ifdef GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
-using ::google::cloud::testing_util::DisableTracing;
-using ::google::cloud::testing_util::EnableTracing;
-using ::google::cloud::testing_util::OTelAttribute;
-using ::google::cloud::testing_util::OTelContextCaptured;
-using ::google::cloud::testing_util::InstallSpanCatcher;
-using ::google::cloud::testing_util::SpanHasAttributes;
-using ::google::cloud::testing_util::SpanHasInstrumentationScope;
-using ::google::cloud::testing_util::SpanKindIsClient;
-using ::google::cloud::testing_util::SpanNamed;
-using ::google::cloud::testing_util::SpanWithStatus;
-using ::google::cloud::testing_util::ThereIsAnActiveSpan;
+using ::google::cloud::bigquery_unified::testing_util::DisableTracing;
+using ::google::cloud::bigquery_unified::testing_util::EnableTracing;
+using ::google::cloud::bigquery_unified::testing_util::OTelAttribute;
+using ::google::cloud::bigquery_unified::testing_util::OTelContextCaptured;
+using ::google::cloud::bigquery_unified::testing_util::InstallSpanCatcher;
+using ::google::cloud::bigquery_unified::testing_util::SpanHasAttributes;
+using ::google::cloud::bigquery_unified::testing_util::SpanHasInstrumentationScope;
+using ::google::cloud::bigquery_unified::testing_util::SpanKindIsClient;
+using ::google::cloud::bigquery_unified::testing_util::SpanNamed;
+using ::google::cloud::bigquery_unified::testing_util::SpanWithStatus;
+using ::google::cloud::bigquery_unified::testing_util::ThereIsAnActiveSpan;
+using ::google::cloud::bigquery_unified::testing_util::StatusIs;
 using ::testing::AllOf;
 using ::testing::ByMove;
 using ::testing::ElementsAre;
 using ::testing::IsEmpty;
 using ::testing::Not;
-using ::google::cloud::bigquery_unified::testing_util::StatusIs;
 using ::testing::Return;
 
 auto constexpr kErrorCode = "ABORTED";

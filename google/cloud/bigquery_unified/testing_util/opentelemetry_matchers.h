@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@
 #include "google/cloud/future.h"
 #include "google/cloud/internal/opentelemetry_context.h"
 #include "google/cloud/options.h"
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/version.h"
 #include <gmock/gmock.h>
 #include <opentelemetry/context/propagation/text_map_propagator.h>
@@ -50,9 +51,8 @@ std::ostream& operator<<(std::ostream&, SpanData const&);
 }  // namespace sdk
 OPENTELEMETRY_END_NAMESPACE
 
-namespace google {
-namespace cloud {
-GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
+namespace google::cloud::bigquery_unified {
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace testing_util_internal {
 
 using OTelAttributeMap =
@@ -113,13 +113,13 @@ MATCHER(IsActive, "") {
 
 MATCHER(SpanHasInstrumentationScope,
         "has instrumentation scope (name: gl-cpp | version: " +
-            version_string() + ")") {
+            ::google::cloud::version_string() + ")") {
   auto const& scope = arg->GetInstrumentationScope();
   auto const& name = scope.GetName();
   auto const& version = scope.GetVersion();
   *result_listener << "has instrumentation scope (name: " << name
                    << " | version: " << version << ")";
-  return name == "gl-cpp" && version == version_string();
+  return name == "gl-cpp" && version == ::google::cloud::version_string();
 }
 
 MATCHER(SpanKindIsClient,
@@ -400,9 +400,8 @@ class PromiseWithOTelContext {
 };
 
 }  // namespace testing_util
-GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END
-}  // namespace cloud
-}  // namespace google
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
+}  // namespace google::cloud::bigquery_unified
 #endif  // GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
 
 #endif  // GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H

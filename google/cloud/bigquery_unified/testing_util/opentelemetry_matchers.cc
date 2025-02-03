@@ -1,4 +1,4 @@
-// Copyright 2023 Google LLC
+// Copyright 2025 Google LLC
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -92,11 +92,11 @@ namespace trace {
 std::ostream& operator<<(std::ostream& os, SpanData const& rhs) {
   char const* line_sep = "\n\t\t\t";
   os << "Span {name=" << rhs.GetName()
-     << ", kind=" << google::cloud::testing_util::ToString(rhs.GetSpanKind())
+     << ", kind=" << google::cloud::bigquery_unified::testing_util::ToString(rhs.GetSpanKind())
      << ", instrumentation_scope {" << rhs.GetInstrumentationScope().GetName()
      << ", " << rhs.GetInstrumentationScope().GetVersion() << "}," << line_sep
      << "parent_span_id="
-     << google::cloud::testing_util::ToString(rhs.GetParentSpanId()) << line_sep
+     << google::cloud::bigquery_unified::testing_util::ToString(rhs.GetParentSpanId()) << line_sep
      << "attributes=["
      << absl::StrJoin(rhs.GetAttributes(), ", ", AttributeFormatter) << "],"
      << line_sep << "events=[";
@@ -109,7 +109,7 @@ std::ostream& operator<<(std::ostream& os, SpanData const& rhs) {
   os << "]," << line_sep << "links=[";
   for (auto const& link : rhs.GetLinks()) {
     os << sep << "Link {span_context="
-       << google::cloud::testing_util::ToString(link.GetSpanContext()) << ","
+       << google::cloud::bigquery_unified::testing_util::ToString(link.GetSpanContext()) << ","
        << line_sep << "\t"
        << "attributes=["
        << absl::StrJoin(link.GetAttributes(), ", ", AttributeFormatter) << "]}";
@@ -122,9 +122,8 @@ std::ostream& operator<<(std::ostream& os, SpanData const& rhs) {
 }  // namespace sdk
 OPENTELEMETRY_END_NAMESPACE
 
-namespace google {
-namespace cloud {
-GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_BEGIN
+namespace google::cloud::bigquery_unified {
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 namespace testing_util {
 
 std::string ToString(opentelemetry::trace::SpanKind k) {
@@ -220,7 +219,6 @@ Options DisableTracing(Options options) {
 }
 
 }  // namespace testing_util
-GOOGLE_CLOUD_CPP_INLINE_NAMESPACE_END
-}  // namespace cloud
-}  // namespace google
+GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
+}  // namespace google::cloud::bigquery_unified
 #endif  // GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
