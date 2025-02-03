@@ -19,7 +19,7 @@
 bigquery_unified_client_unit_tests = [
     "client_test.cc",
     "internal/connection_impl_test.cc",
-    "internal/tracing_connection_test.cc",
     "internal/default_options_test.cc",
+    "internal/tracing_connection_test.cc",
     "mocks/mock_stream_range_test.cc",
 ]
