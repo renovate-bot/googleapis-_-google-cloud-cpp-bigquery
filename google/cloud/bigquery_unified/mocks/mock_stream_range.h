@@ -15,9 +15,9 @@
 #ifndef GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_MOCKS_MOCK_STREAM_RANGE_H
 #define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_MOCKS_MOCK_STREAM_RANGE_H
 
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/status.h"
 #include "google/cloud/stream_range.h"
-#include "google/cloud/bigquery_unified/version.h"
 #include <vector>
 
 namespace google::cloud::bigquery_unified {
@@ -63,7 +63,7 @@ StreamRange<T> MakeStreamRange(std::vector<T> values,
 }
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
-}  // namespace mock
+}  // namespace mocks
 }  // namespace google::cloud::bigquery_unified
 
 #endif  // GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_MOCKS_MOCK_STREAM_RANGE_H

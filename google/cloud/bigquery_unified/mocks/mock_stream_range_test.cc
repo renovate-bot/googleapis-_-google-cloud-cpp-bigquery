@@ -72,5 +72,5 @@ TEST(MakeStreamRangeTest, ValuesThenStatus) {
 }  // namespace
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
-}  // namespace mock
+}  // namespace mocks
 }  // namespace google::cloud::bigquery_unified
