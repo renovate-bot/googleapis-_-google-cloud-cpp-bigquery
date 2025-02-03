@@ -91,13 +91,15 @@ namespace trace {
 
 std::ostream& operator<<(std::ostream& os, SpanData const& rhs) {
   char const* line_sep = "\n\t\t\t";
-  os << "Span {name=" << rhs.GetName()
-     << ", kind=" << google::cloud::bigquery_unified::testing_util::ToString(rhs.GetSpanKind())
+  os << "Span {name=" << rhs.GetName() << ", kind="
+     << google::cloud::bigquery_unified::testing_util::ToString(
+            rhs.GetSpanKind())
      << ", instrumentation_scope {" << rhs.GetInstrumentationScope().GetName()
      << ", " << rhs.GetInstrumentationScope().GetVersion() << "}," << line_sep
      << "parent_span_id="
-     << google::cloud::bigquery_unified::testing_util::ToString(rhs.GetParentSpanId()) << line_sep
-     << "attributes=["
+     << google::cloud::bigquery_unified::testing_util::ToString(
+            rhs.GetParentSpanId())
+     << line_sep << "attributes=["
      << absl::StrJoin(rhs.GetAttributes(), ", ", AttributeFormatter) << "],"
      << line_sep << "events=[";
   char const* sep = " ";
@@ -109,8 +111,9 @@ std::ostream& operator<<(std::ostream& os, SpanData const& rhs) {
   os << "]," << line_sep << "links=[";
   for (auto const& link : rhs.GetLinks()) {
     os << sep << "Link {span_context="
-       << google::cloud::bigquery_unified::testing_util::ToString(link.GetSpanContext()) << ","
-       << line_sep << "\t"
+       << google::cloud::bigquery_unified::testing_util::ToString(
+              link.GetSpanContext())
+       << "," << line_sep << "\t"
        << "attributes=["
        << absl::StrJoin(link.GetAttributes(), ", ", AttributeFormatter) << "]}";
     sep = ", \n\t\t\t";

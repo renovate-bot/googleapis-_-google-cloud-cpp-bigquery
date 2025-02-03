@@ -200,7 +200,7 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
     add_library(google_cloud_cpp_bigquery_bigquery_unified_mocks INTERFACE)
     set(google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs
         # cmake-format: sort
-        mocks/mock_connection.h)
+        mocks/mock_connection.h mocks/mock_stream_range.h)
     export_list_to_bazel(
         "google_cloud_cpp_bigquery_bigquery_unified_mocks.bzl"
         "google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs" YEAR "2024")
@@ -254,8 +254,11 @@ function (bigquery_unified_client_define_tests)
     find_package(GTest CONFIG REQUIRED)
     set(bigquery_unified_client_unit_tests
         # cmake-format: sort
-        client_test.cc internal/connection_impl_test.cc internal/tracing_connection_test.cc
-        internal/default_options_test.cc)
+        client_test.cc
+        internal/connection_impl_test.cc
+        internal/default_options_test.cc
+        internal/tracing_connection_test.cc
+        mocks/mock_stream_range_test.cc)
 
     # Export the list of unit tests to a .bzl file so we do not need to maintain
     # the list in two places.

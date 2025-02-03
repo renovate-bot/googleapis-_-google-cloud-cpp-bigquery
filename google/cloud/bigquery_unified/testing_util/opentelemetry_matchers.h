@@ -12,14 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
-#define GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
+#ifndef GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
+#define GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
 
 #ifdef GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
+#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/future.h"
 #include "google/cloud/internal/opentelemetry_context.h"
 #include "google/cloud/options.h"
-#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/version.h"
 #include <gmock/gmock.h>
 #include <opentelemetry/context/propagation/text_map_propagator.h>
@@ -404,4 +404,4 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
 }  // namespace google::cloud::bigquery_unified
 #endif  // GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
 
-#endif  // GOOGLE_CLOUD_CPP_GOOGLE_CLOUD_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
+#endif  // GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_TESTING_UTIL_OPENTELEMETRY_MATCHERS_H
