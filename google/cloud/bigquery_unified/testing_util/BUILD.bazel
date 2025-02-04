@@ -43,7 +43,7 @@ cc_library(
         "@google_cloud_cpp//:common",
     ],
     # Enable the config when the bool flag is visible.
-    # https://github.com/googleapis/google-cloud-cpp/pull/14961
+    # https://github.com/googleapis/google-cloud-cpp-bigquery/issues/98
     # + select({
     #     ":enable_opentelemetry": [
     #         "@io_opentelemetry_cpp//exporters/memory:in_memory_span_exporter",

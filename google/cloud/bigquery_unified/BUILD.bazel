@@ -61,7 +61,7 @@ cc_library(
     srcs = google_cloud_cpp_bigquery_bigquery_unified_srcs,
     hdrs = google_cloud_cpp_bigquery_bigquery_unified_hdrs,
     # Enable the config when the bool flag is visible.
-    # https://github.com/googleapis/google-cloud-cpp/pull/14961
+    # https://github.com/googleapis/google-cloud-cpp-bigquery/issues/98
     # defines = select({
     #     ":enable_opentelemetry": [
     #         # Enable OpenTelemetry features in google-cloud-cpp

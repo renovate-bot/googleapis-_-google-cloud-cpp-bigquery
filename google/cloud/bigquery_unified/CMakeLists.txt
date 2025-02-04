@@ -190,9 +190,11 @@ if (GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY)
     else ()
         message(
             FATAL_ERROR
-                "OpenTelemetry is not enabled in the package "
-                "google-cloud-cpp, the target "
-                "google-cloud-cpp::opentelemetry is not available.")
+                "Instrumentation with OpenTelemetry was requested "
+                "for google-cloud-cpp-bigquery, but it was not enabled "
+                "in google-cloud-cpp. Please build and install "
+                "google-cloud-cpp with GOOGLE_CLOUD_CPP_ENABLE=opentelemetry "
+                "if you want to use this feature.")
     endif ()
 endif ()
 
@@ -255,6 +257,7 @@ function (bigquery_unified_client_define_tests)
     set(bigquery_unified_client_unit_tests
         # cmake-format: sort
         client_test.cc
+        connection_test.cc
         internal/connection_impl_test.cc
         internal/default_options_test.cc
         internal/tracing_connection_test.cc
