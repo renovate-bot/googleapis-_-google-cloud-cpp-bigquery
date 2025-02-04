@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "google/cloud/bigquery_unified/version.h"
 #include "google/cloud/bigquery_unified/connection.h"
 #include "google/cloud/bigquery_unified/testing_util/opentelemetry_matchers.h"
+#include "google/cloud/bigquery_unified/version.h"
 
 namespace google::cloud::bigquery_unified {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
@@ -24,8 +24,8 @@ namespace {
 using ::google::cloud::bigquery_unified::testing_util::DisableTracing;
 using ::google::cloud::bigquery_unified::testing_util::EnableTracing;
 using ::google::cloud::bigquery_unified::testing_util::SpanNamed;
-using ::testing::Not;
 using ::testing::Contains;
+using ::testing::Not;
 
 TEST(BigQueryUnifiedConnectionTest, TracingEnabled) {
   auto span_catcher = testing_util::InstallSpanCatcher();
@@ -39,9 +39,8 @@ TEST(BigQueryUnifiedConnectionTest, TracingEnabled) {
   (void)conn->GetJob(request, Options{});
 
   auto spans = span_catcher->GetSpans();
-  EXPECT_THAT(
-      spans,
-      Contains(SpanNamed("bigquery_unified::Connection::GetJob")));
+  EXPECT_THAT(spans,
+              Contains(SpanNamed("bigquery_unified::Connection::GetJob")));
 }
 
 TEST(BigQueryUnifiedConnectionTest, TracingDisabled) {
@@ -57,8 +56,7 @@ TEST(BigQueryUnifiedConnectionTest, TracingDisabled) {
 
   auto spans = span_catcher->GetSpans();
   EXPECT_THAT(spans,
-              Not(Contains(SpanNamed(
-                  "bigquery_unified::Connection::GetJob"))));
+              Not(Contains(SpanNamed("bigquery_unified::Connection::GetJob"))));
 }
 
 #endif  // GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY
