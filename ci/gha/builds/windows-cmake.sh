@@ -39,6 +39,7 @@ if [[ $# -gt 1 ]]; then
   args+=("-DCMAKE_BUILD_TYPE=${1}")
   shift
 fi
+
 if command -v sccache >/dev/null 2>&1; then
   args+=(
     # sccache requires specific workarounds with MSVC.

@@ -249,8 +249,8 @@ def gl_cpp_workspace0(name = None):
         http_archive,
         name = "com_google_googleapis_google_cloud_cpp",
         urls = [
-            "https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz",
+            "https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz",
         ],
-        sha256 = "22deeb6c2abf0838f4d4c6100e83489bb581fa8015180370500ad31712f601ac",
-        strip_prefix = "google-cloud-cpp-2.34.0",
+        sha256 = "81ea28cf9e5bb032d356b0187409f30b1035f8ea5b530675ea248c8a6c0070aa",
+        strip_prefix = "google-cloud-cpp-2.35.0",
     )

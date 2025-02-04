@@ -20,7 +20,7 @@ include(CreateBazelConfig)
 
 find_package(google_cloud_cpp_bigquery REQUIRED)
 find_package(google_cloud_cpp_bigquerycontrol REQUIRED)
-find_package(Arrow REQUIRED)
+find_package(Arrow CONFIG REQUIRED)
 
 # Generate the version information from the CMake values.
 configure_file(internal/version_info.h.in
@@ -156,7 +156,7 @@ set(bigquery_unified_library_files
 
 set(bigquery_unified_deps
     # cmake-format: sort
-    Arrow::arrow_static
+    "$<IF:$<BOOL:${ARROW_BUILD_STATIC}>,Arrow::arrow_static,Arrow::arrow_shared>"
     google-cloud-cpp-bigquery::common
     google-cloud-cpp::bigquery
     google-cloud-cpp::experimental-bigquerycontrol

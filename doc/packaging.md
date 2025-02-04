@@ -203,7 +203,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -331,7 +331,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -449,7 +449,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -590,7 +590,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -647,7 +647,7 @@ on Abseil.
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | \
+curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.1.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
@@ -784,7 +784,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -841,7 +841,7 @@ on Abseil.
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | \
+curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.1.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
@@ -1001,7 +1001,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -1137,7 +1137,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -1197,7 +1197,7 @@ on Abseil.
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | \
+curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.1.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
@@ -1352,7 +1352,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
@@ -1444,7 +1444,7 @@ of C++ used to compile Abseil to anything that depends on Abseil.
 
 ```bash
 mkdir -p $HOME/Downloads/abseil-cpp && cd $HOME/Downloads/abseil-cpp
-curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.0.tar.gz | \
+curl -fsSL https://github.com/abseil/abseil-cpp/archive/20240722.1.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -DCMAKE_BUILD_TYPE=Release \
@@ -1604,7 +1604,7 @@ sudo cmake --build cmake-out --target install
 
 #### google-cloud-cpp
 mkdir -p $HOME/Downloads/google-cloud-cpp && cd $HOME/Downloads/google-cloud-cpp
-curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.34.0.tar.gz | \
+curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.tar.gz | \
     tar -xzf - --strip-components=1 && \
     cmake \
       -GNinja -S . -B cmake-out \
