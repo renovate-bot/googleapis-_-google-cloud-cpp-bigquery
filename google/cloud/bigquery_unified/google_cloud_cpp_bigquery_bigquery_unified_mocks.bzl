@@ -18,4 +18,5 @@
 
 google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs = [
     "mocks/mock_connection.h",
+    "mocks/mock_stream_range.h",
 ]

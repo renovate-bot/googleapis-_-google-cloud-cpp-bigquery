@@ -198,7 +198,7 @@ RUN curl -fsSL https://github.com/googleapis/google-cloud-cpp/archive/v2.35.0.ta
         -DCMAKE_CXX_STANDARD=17 \
         -DGOOGLE_CLOUD_CPP_ENABLE_CLANG_ABI_COMPAT_17=ON \
         -DBUILD_SHARED_LIBS=yes \
-        -DGOOGLE_CLOUD_CPP_ENABLE="bigquerycontrol,bigquery" \
+        -DGOOGLE_CLOUD_CPP_ENABLE="bigquerycontrol,bigquery,opentelemetry" \
       -GNinja -S . -B cmake-out && \
     cmake --build cmake-out --target install && \
     ldconfig && cd /var/tmp && rm -fr build

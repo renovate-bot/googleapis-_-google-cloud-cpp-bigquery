@@ -17,9 +17,11 @@
 """Automatically generated source lists for google_cloud_cpp_bigquery_bigquery_unified_testing - DO NOT EDIT."""
 
 google_cloud_cpp_bigquery_bigquery_unified_testing_hdrs = [
+    "opentelemetry_matchers.h",
     "status_matchers.h",
 ]
 
 google_cloud_cpp_bigquery_bigquery_unified_testing_srcs = [
+    "opentelemetry_matchers.cc",
     "status_matchers.cc",
 ]

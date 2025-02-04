@@ -20,7 +20,23 @@ endif ()
 
 add_library(
     google_cloud_cpp_bigquery_bigquery_unified_testing # cmake-format: sort
-    status_matchers.cc status_matchers.h)
+    opentelemetry_matchers.cc opentelemetry_matchers.h status_matchers.cc
+    status_matchers.h)
+
+if (GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY)
+    find_package(google_cloud_cpp_opentelemetry CONFIG)
+    if (TARGET google-cloud-cpp::opentelemetry)
+        target_link_libraries(
+            google_cloud_cpp_bigquery_bigquery_unified_testing
+            PRIVATE opentelemetry-cpp::in_memory_span_exporter
+                    opentelemetry-cpp::trace)
+        target_compile_definitions(
+            google_cloud_cpp_bigquery_bigquery_unified_testing
+            PUBLIC # Enable OpenTelemetry features in google-cloud-cpp-bigquery
+                   GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY)
+    endif ()
+endif ()
+
 target_include_directories(
     google_cloud_cpp_bigquery_bigquery_unified_testing
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>

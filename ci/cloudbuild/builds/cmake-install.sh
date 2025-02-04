@@ -39,7 +39,8 @@ io::run cmake "${cmake_args[@]}" \
   -DGOOGLE_CLOUD_CPP_ENABLE_CLANG_ABI_COMPAT_17=ON \
   -DBUILD_TESTING=OFF \
   -DGOOGLE_CLOUD_CPP_ENABLE_EXAMPLES=OFF \
-  -DGOOGLE_CLOUD_CPP_ENABLE="${ENABLED_FEATURES}"
+  -DGOOGLE_CLOUD_CPP_ENABLE="${ENABLED_FEATURES}" \
+  -DGOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY=ON
 io::run cmake --build cmake-out
 io::run cmake --install cmake-out --component google_cloud_cpp_bigquery_development
 

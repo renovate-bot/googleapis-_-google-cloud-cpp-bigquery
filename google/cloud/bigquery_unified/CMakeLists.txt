@@ -147,6 +147,8 @@ set(bigquery_unified_library_files
     internal/default_options.cc
     internal/default_options.h
     internal/retry_traits.h
+    internal/tracing_connection.cc
+    internal/tracing_connection.h
     job_options.h
     read_arrow_response.h
     read_options.h
@@ -178,11 +180,29 @@ bigquery_unified_library(
     PKGCONFIG_DEPS
     ${bigquery_unified_pkgconfig_deps})
 
+if (GOOGLE_CLOUD_CPP_BIGQUERY_ENABLE_OPENTELEMETRY)
+    find_package(google_cloud_cpp_opentelemetry CONFIG)
+    if (TARGET google-cloud-cpp::opentelemetry)
+        target_compile_definitions(
+            google_cloud_cpp_bigquery_bigquery_unified
+            PUBLIC # Enable OpenTelemetry features in google-cloud-cpp-bigquery
+                   GOOGLE_CLOUD_CPP_BIGQUERY_HAVE_OPENTELEMETRY)
+    else ()
+        message(
+            FATAL_ERROR
+                "Instrumentation with OpenTelemetry was requested "
+                "for google-cloud-cpp-bigquery, but it was not enabled "
+                "in google-cloud-cpp. Please build and install "
+                "google-cloud-cpp with GOOGLE_CLOUD_CPP_ENABLE=opentelemetry "
+                "if you want to use this feature.")
+    endif ()
+endif ()
+
 if (GOOGLE_CLOUD_CPP_BIGQUERY_WITH_MOCKS)
     add_library(google_cloud_cpp_bigquery_bigquery_unified_mocks INTERFACE)
     set(google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs
         # cmake-format: sort
-        mocks/mock_connection.h)
+        mocks/mock_connection.h mocks/mock_stream_range.h)
     export_list_to_bazel(
         "google_cloud_cpp_bigquery_bigquery_unified_mocks.bzl"
         "google_cloud_cpp_bigquery_bigquery_unified_mocks_hdrs" YEAR "2024")
@@ -236,8 +256,12 @@ function (bigquery_unified_client_define_tests)
     find_package(GTest CONFIG REQUIRED)
     set(bigquery_unified_client_unit_tests
         # cmake-format: sort
-        client_test.cc internal/connection_impl_test.cc
-        internal/default_options_test.cc)
+        client_test.cc
+        connection_test.cc
+        internal/connection_impl_test.cc
+        internal/default_options_test.cc
+        internal/tracing_connection_test.cc
+        mocks/mock_stream_range_test.cc)
 
     # Export the list of unit tests to a .bzl file so we do not need to maintain
     # the list in two places.

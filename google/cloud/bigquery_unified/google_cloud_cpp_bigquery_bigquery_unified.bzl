@@ -25,6 +25,7 @@ google_cloud_cpp_bigquery_bigquery_unified_hdrs = [
     "internal/connection_impl.h",
     "internal/default_options.h",
     "internal/retry_traits.h",
+    "internal/tracing_connection.h",
     "job_options.h",
     "read_arrow_response.h",
     "read_options.h",
@@ -38,4 +39,5 @@ google_cloud_cpp_bigquery_bigquery_unified_srcs = [
     "internal/arrow_reader.cc",
     "internal/connection_impl.cc",
     "internal/default_options.cc",
+    "internal/tracing_connection.cc",
 ]
