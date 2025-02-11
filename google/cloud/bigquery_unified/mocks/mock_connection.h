@@ -18,7 +18,7 @@
 #include "google/cloud/bigquery_unified/connection.h"
 #include <gmock/gmock.h>
 
-namespace google::cloud::bigquery_unified {
+namespace google::cloud::bigquery_unified_mocks {
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
 
 /**
@@ -30,7 +30,7 @@ GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_BEGIN
  * class. Then use the Google Test framework functions to program the behavior
  * of this mock.
  */
-class MockConnection : public Connection {
+class MockConnection : public bigquery_unified::Connection {
  public:
   MOCK_METHOD(Options, options, (), (override));
 
@@ -85,7 +85,7 @@ class MockConnection : public Connection {
               (override));
 
   MOCK_METHOD(
-      StatusOr<ReadArrowResponse>, ReadArrow,
+      StatusOr<bigquery_unified::ReadArrowResponse>, ReadArrow,
       (google::cloud::bigquery::storage::v1::CreateReadSessionRequest const&
            read_session,
        Options opts),
@@ -93,6 +93,6 @@ class MockConnection : public Connection {
 };
 
 GOOGLE_CLOUD_CPP_BIGQUERY_INLINE_NAMESPACE_END
-}  // namespace google::cloud::bigquery_unified
+}  // namespace google::cloud::bigquery_unified_mocks
 
 #endif  // GOOGLE_CLOUD_CPP_BIGQUERY_GOOGLE_CLOUD_BIGQUERY_UNIFIED_MOCKS_MOCK_CONNECTION_H
